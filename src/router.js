@@ -3,6 +3,8 @@ import { normalize } from './normalize.js';
 import { createVocabulary } from './vocabulary.js';
 import { createExactLayer } from './layers/exact.js';
 import { createScoreLayer } from './layers/score.js';
+import { createClassifierLayer } from './layers/classifier.js';
+import { LayerTimeoutError, CallerAbortError } from './timeout.js';
 
 const ms = (start) => Math.round((performance.now() - start) * 100) / 100;
 const describe = (err) => (err instanceof Error ? `${err.name}: ${err.message}` : String(err));
@@ -24,6 +26,7 @@ export function createRouter(config) {
   });
   /** @type {import('./layers/types.js').Layer[]} */
   const layers = [createExactLayer(cfg), createScoreLayer(cfg, vocabulary)];
+  if (cfg.classifier) layers.push(createClassifierLayer(cfg, vocabulary));
 
   /**
    * Answer one message with the cheapest layer that can.
@@ -76,7 +79,11 @@ export function createRouter(config) {
       try {
         out = await layer.run({ message, normalized, context, signal });
       } catch (err) {
-        out = { outcome: 'error', reason: describe(err) };
+        if (err instanceof CallerAbortError) {
+          trace.push({ layer: layer.name, outcome: 'aborted', reason: err.message, latencyMs: ms(t0) });
+          return fallback('aborted by caller');
+        }
+        out = { outcome: err instanceof LayerTimeoutError ? 'timeout' : 'error', reason: describe(err) };
       }
       const { reply, output, ...step } = out;
       trace.push({ layer: layer.name, ...step, latencyMs: ms(t0) });

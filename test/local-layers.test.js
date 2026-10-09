@@ -180,6 +180,16 @@ test('an async onResult that rejects does not become an unhandled rejection', as
   }
 });
 
+test('null options and a signal that is not an AbortSignal do not break the turn', async () => {
+  const classify = async () => ({ choice: 'sizes', confidence: 0.99 });
+  const router = createRouter(base({ classifier: { classify } }));
+  const withNull = await router.route('what sizes do you print', /** @type {any} */ (null));
+  assert.equal(withNull.layer, 'exact');
+  const fakeSignal = await router.route('how big can you go', /** @type {any} */ ({ signal: {} }));
+  assert.equal(fakeSignal.layer, 'classifier');
+  assert.equal(fakeSignal.answerId, 'sizes');
+});
+
 test('an already aborted signal returns the fallback without running layers', async () => {
   const r = await createRouter(base()).route('what sizes do you print', { signal: AbortSignal.abort() });
   assert.equal(r.layer, 'fallback');
