@@ -11,11 +11,14 @@
   },
   "files": [
     "src",
+    "examples",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
     "test": "node --test",
+    "bench": "node bench/run.js",
+    "ask": "node examples/sticker-shop/ask.js",
     "lint": "node scripts/lint.mjs"
   },
   "engines": {
