@@ -173,4 +173,4 @@ npm run typecheck   # tsc --checkJs on src/, tsc --strict on the .d.ts files
 npm run bench -- --verbose
 ```
 
-MIT, see [LICENSE](LICENSE).
+Author: Alfredo Rosadilla ([@Binarysite](https://github.com/Binarysite)). Copyright AURELIAI SpA, released under the MIT license, see [LICENSE](LICENSE).
