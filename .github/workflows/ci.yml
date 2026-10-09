@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm run lint
+      # tsc --checkJs on src/, plus tsc --strict on index.d.ts and claude.d.ts.
+      - run: npm run typecheck
+      # Runtime dependencies only (there are none), so a new advisory in a dev
+      # tool such as TypeScript cannot turn CI red without a code change.
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm test
+      # Exits 1 if a cheap layer gives a wrong answer on the bench bank.
+      - run: npm run bench
