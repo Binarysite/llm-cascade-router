@@ -23,7 +23,7 @@ customer yet, one manual test of 13 turns moved from 3 to 6 answered without a
 model call once fixed answers went in front of the model. An anecdote, not a
 benchmark; the bench below is the reproducible number. This repo is written
 from scratch around an invented sticker shop.
-Built with Claude Code. Status: v0.1.0, not on npm.
+Built with Claude Code; the design decisions and reviews are mine. Status: v0.1.0, not on npm.
 
 ## Quickstart
 
