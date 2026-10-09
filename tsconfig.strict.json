@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": false,
+    "types": ["node"]
+  },
+  "files": ["index.d.ts", "claude.d.ts"]
+}

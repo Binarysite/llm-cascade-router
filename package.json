@@ -5,12 +5,21 @@
   "type": "module",
   "private": true,
   "main": "src/index.js",
+  "types": "index.d.ts",
   "exports": {
-    ".": "./src/index.js",
-    "./claude": "./src/adapters/claude.js"
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./claude": {
+      "types": "./claude.d.ts",
+      "default": "./src/adapters/claude.js"
+    }
   },
   "files": [
     "src",
+    "index.d.ts",
+    "claude.d.ts",
     "examples",
     "LICENSE",
     "README.md"
@@ -19,7 +28,8 @@
     "test": "node --test",
     "bench": "node bench/run.js",
     "ask": "node examples/sticker-shop/ask.js",
-    "lint": "node scripts/lint.mjs"
+    "lint": "node scripts/lint.mjs",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.strict.json"
   },
   "engines": {
     "node": ">=22"
@@ -42,5 +52,9 @@
   "homepage": "https://github.com/Binarysite/llm-cascade-router#readme",
   "bugs": {
     "url": "https://github.com/Binarysite/llm-cascade-router/issues"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "7.0.2"
   }
 }
