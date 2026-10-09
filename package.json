@@ -1,0 +1,42 @@
+{
+  "name": "llm-cascade-router",
+  "version": "0.1.0",
+  "description": "Answer each chat message with the cheapest layer that can: exact match, local scoring, a cheap classifier, and only then the LLM. Zero runtime dependencies.",
+  "type": "module",
+  "private": true,
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "lint": "node scripts/lint.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "llm",
+    "agents",
+    "chatbot",
+    "routing",
+    "cascade",
+    "intent-classification",
+    "cost"
+  ],
+  "author": "Alfredo Rosadilla",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Binarysite/llm-cascade-router.git"
+  },
+  "homepage": "https://github.com/Binarysite/llm-cascade-router#readme",
+  "bugs": {
+    "url": "https://github.com/Binarysite/llm-cascade-router/issues"
+  }
+}
