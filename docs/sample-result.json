@@ -1,0 +1,31 @@
+{
+  "reply": "All stickers are printed on waterproof vinyl with a UV laminate, rated for about 3 years outdoors.",
+  "layer": "classifier",
+  "answerId": "waterproof",
+  "reason": "waterproof at 0.75",
+  "llmCalled": false,
+  "latencyMs": 1.2,
+  "trace": [
+    {
+      "layer": "exact",
+      "outcome": "miss",
+      "reason": "no phrase matches the normalized message",
+      "latencyMs": 0.04
+    },
+    {
+      "layer": "score",
+      "outcome": "miss",
+      "reason": "best waterproof 0.25 via \"are they weatherproof\", below minScore 0.5",
+      "score": 0.25,
+      "latencyMs": 0.49
+    },
+    {
+      "layer": "classifier",
+      "outcome": "hit",
+      "answerId": "waterproof",
+      "reason": "waterproof at 0.75",
+      "confidence": 0.75,
+      "latencyMs": 0.64
+    }
+  ]
+}
