@@ -4,6 +4,7 @@ import { createVocabulary } from './vocabulary.js';
 import { createExactLayer } from './layers/exact.js';
 import { createScoreLayer } from './layers/score.js';
 import { createClassifierLayer } from './layers/classifier.js';
+import { createLlmLayer } from './layers/llm.js';
 import { LayerTimeoutError, CallerAbortError } from './timeout.js';
 
 const ms = (start) => Math.round((performance.now() - start) * 100) / 100;
@@ -27,6 +28,7 @@ export function createRouter(config) {
   /** @type {import('./layers/types.js').Layer[]} */
   const layers = [createExactLayer(cfg), createScoreLayer(cfg, vocabulary)];
   if (cfg.classifier) layers.push(createClassifierLayer(cfg, vocabulary));
+  if (cfg.llm) layers.push(createLlmLayer(cfg));
 
   /**
    * Answer one message with the cheapest layer that can.
