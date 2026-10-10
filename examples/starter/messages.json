@@ -1,0 +1,42 @@
+[
+  {
+    "text": "How long does shipping take?",
+    "expect": "shipping-time"
+  },
+  {
+    "text": "when do my stickers arrive",
+    "expect": "shipping-time"
+  },
+  {
+    "text": "how fast do u shiping",
+    "expect": "shipping-time"
+  },
+  {
+    "text": "are your labels weatherproof",
+    "expect": "waterproof"
+  },
+  {
+    "text": "will the colors fade if it sits outside in the sun on my car",
+    "expect": "waterproof"
+  },
+  {
+    "text": "what are your hours",
+    "expect": "contact"
+  },
+  {
+    "text": "is there a phone number to call",
+    "expect": "contact"
+  },
+  {
+    "text": "Where is my order #10482?",
+    "expect": "llm"
+  },
+  {
+    "text": "My stickers arrived damaged, I want a refund",
+    "expect": "llm"
+  },
+  {
+    "text": "cancel my order",
+    "expect": "llm"
+  }
+]

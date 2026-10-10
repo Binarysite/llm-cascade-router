@@ -26,8 +26,15 @@ export function wilson95(k, n) {
 /**
  * Route every message through a fresh router, so call counts belong to this bank only.
  * @param {ReadonlyArray<{ text: string, expect: string }>} bank `expect` is an answer id or 'llm'
+ * @param {{
+ *   build?: (slots: { classify?: import('../index.js').Classify, generate: import('../index.js').Generate }) => {
+ *     route: (message: string) => Promise<import('../index.js').RouteResult>,
+ *   },
+ *   classifier?: boolean,
+ * }} [options] `build` makes the router (the sticker shop by default); `classifier: false`
+ *   leaves layer 3 out
  */
-export async function measure(bank) {
+export async function measure(bank, { build = createStickerShopRouter, classifier = true } = {}) {
   const llm = createMockLlm();
   // Count classifier calls too: with a real model in that slot, each one is a
   // small-model call, so "answered without the main LLM" is not "free".
@@ -38,7 +45,7 @@ export async function measure(bank) {
     classifierCalls += 1;
     return keyword(input);
   };
-  const router = createStickerShopRouter({ classify, generate: llm });
+  const router = build(classifier ? { classify, generate: llm } : { generate: llm });
 
   const rows = [];
   for (const { text, expect } of bank) {
@@ -69,6 +76,7 @@ export async function measure(bank) {
     total: rows.length,
     withFixedAnswer: rows.filter((r) => r.expect !== 'llm').length,
     llmCalls: llm.calls(),
+    classifierConfigured: classifier,
     classifierCalls,
     classifierAnswers,
     breakEven: Number(breakEven.toFixed(3)),
@@ -84,9 +92,10 @@ export async function measure(bank) {
 /**
  * The same table for every bank, as lines of text.
  * @param {Awaited<ReturnType<typeof measure>>} report
- * @param {{ verbose?: boolean }} [options] one line per message before the table
+ * @param {{ verbose?: boolean, noun?: string }} [options] `verbose` adds one line per message
+ *   before the table; `noun` names the messages in the first line
  */
-export function format(report, { verbose = false } = {}) {
+export function format(report, { verbose = false, noun = 'invented messages' } = {}) {
   const { total, withFixedAnswer: fixable, byLayer, classifierCalls, classifierAnswers } = report;
   const noModel = report.answeredWithoutMainLlm;
   const pct = (n) => `${(total ? (100 * n) / total : 0).toFixed(1)}%`;
@@ -99,7 +108,7 @@ export function format(report, { verbose = false } = {}) {
     }
     out.push('');
   }
-  out.push(`${total} invented messages, ${fixable} with a fixed answer and ${total - fixable} that need the model`);
+  out.push(`${total} ${noun}, ${fixable} with a fixed answer and ${total - fixable} that need the model`);
   out.push('');
   out.push('layer       turns  share   right  wrong  escalated');
   for (const layer of LAYERS) {
@@ -120,10 +129,14 @@ export function format(report, { verbose = false } = {}) {
   out.push(`  95% interval (Wilson): ${lo}% to ${hi}%`);
   out.push(`ceiling: ${fixable}/${total} (${pct(fixable)}), the messages that have a fixed answer`);
   out.push(`LLM calls: ${report.llmCalls}, against ${total} if every message went to the model`);
-  out.push(`classifier calls: ${classifierCalls}, answers: ${classifierAnswers} (keyword mock here, not a model)`);
-  out.push(`classifier break-even: ${classifierAnswers}/${classifierCalls} = ${report.breakEven.toFixed(2)} `
-    + 'of a main LLM call');
-  out.push('  (a model classifier saves money only if each of its calls costs less than that)');
+  if (report.classifierConfigured === false) {
+    out.push('classifier: not configured (layers 1 and 2, then the mock LLM)');
+  } else {
+    out.push(`classifier calls: ${classifierCalls}, answers: ${classifierAnswers} (keyword mock here, not a model)`);
+    out.push(`classifier break-even: ${classifierAnswers}/${classifierCalls} = ${report.breakEven.toFixed(2)} `
+      + 'of a main LLM call');
+    out.push('  (a model classifier saves money only if each of its calls costs less than that)');
+  }
   out.push(`wrong fixed answers: ${report.wrong.length}`);
   out.push(`fixed-answer questions that still reached the LLM: ${report.escalated.length}`);
   for (const r of report.wrong) out.push(`  WRONG ${r.layer}: "${r.text}" -> ${r.answerId}, expected ${r.expect}`);

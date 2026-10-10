@@ -1,0 +1,177 @@
+{
+  "answers": [
+    {
+      "id": "shipping-time",
+      "reply": "Orders ship within 2 business days after you approve the proof. Standard delivery then takes 3 to 5 business days.",
+      "phrases": [
+        "how long does shipping take",
+        "when will my order ship",
+        "how long until i get my stickers",
+        "how fast do you ship",
+        "shipping time",
+        "delivery time"
+      ],
+      "avoid": [
+        "damaged",
+        "lost",
+        "late",
+        "missing",
+        "refund",
+        "wrong",
+        "never",
+        "change",
+        "address"
+      ]
+    },
+    {
+      "id": "waterproof",
+      "reply": "All stickers are printed on waterproof vinyl with a UV laminate, rated for about 3 years outdoors.",
+      "phrases": [
+        "are the stickers waterproof",
+        "are they weatherproof",
+        "can i put them outside",
+        "are they dishwasher safe",
+        "will they fade in the sun"
+      ],
+      "description": "whether stickers survive water, sun and outdoor use"
+    },
+    {
+      "id": "contact",
+      "reply": "Email help@example.com, Monday to Friday, 9am to 5pm Eastern. We reply within one business day.",
+      "phrases": [
+        "how can i contact you",
+        "what are your hours",
+        "how do i reach support",
+        "is there a phone number"
+      ],
+      "description": "how to contact support and support hours",
+      "avoid": [
+        "ordered"
+      ]
+    }
+  ],
+  "synonyms": {
+    "ship": [
+      "shipping",
+      "shipped",
+      "ships",
+      "delivery",
+      "deliver",
+      "delivered",
+      "arrive",
+      "arrives"
+    ],
+    "sticker": [
+      "stickers",
+      "decal",
+      "decals",
+      "label",
+      "labels"
+    ],
+    "waterproof": [
+      "weatherproof",
+      "water",
+      "rain"
+    ],
+    "cost": [
+      "price",
+      "prices",
+      "costs",
+      "fee",
+      "fees"
+    ],
+    "file": [
+      "files",
+      "artwork",
+      "image",
+      "images",
+      "format",
+      "formats"
+    ],
+    "big": [
+      "large",
+      "largest",
+      "biggest",
+      "huge"
+    ],
+    "small": [
+      "smallest",
+      "tiny",
+      "little"
+    ],
+    "size": [
+      "sizes",
+      "dimensions"
+    ],
+    "contact": [
+      "reach",
+      "call",
+      "phone"
+    ],
+    "minimum": [
+      "min",
+      "least"
+    ],
+    "outside": [
+      "outdoors",
+      "outdoor"
+    ]
+  },
+  "stopwords": [
+    "a",
+    "an",
+    "the",
+    "is",
+    "are",
+    "am",
+    "do",
+    "does",
+    "did",
+    "i",
+    "me",
+    "my",
+    "you",
+    "your",
+    "we",
+    "our",
+    "it",
+    "they",
+    "them",
+    "to",
+    "of",
+    "for",
+    "on",
+    "in",
+    "at",
+    "and",
+    "or",
+    "can",
+    "could",
+    "will",
+    "would",
+    "be",
+    "there",
+    "what",
+    "whats",
+    "how",
+    "please",
+    "hi",
+    "hello",
+    "hey",
+    "thanks",
+    "just",
+    "so",
+    "any",
+    "with",
+    "get",
+    "have",
+    "has",
+    "if",
+    "this",
+    "that",
+    "u",
+    "ur",
+    "pls"
+  ],
+  "fallback": "Sorry, I could not answer that right now. A person from our team will reply by email."
+}
