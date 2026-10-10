@@ -96,3 +96,15 @@ test('bench coverage does not silently drop: floors on the cheap share and on es
   assert.equal(report.classifierAnswers, report.byLayer.classifier.turns);
   assert.equal(report.breakEven, Number((report.classifierAnswers / report.classifierCalls).toFixed(3)));
 });
+
+test('ask.js with no message routes four demo messages, one per layer', async () => {
+  const script = new URL('../examples/sticker-shop/ask.js', import.meta.url).pathname;
+  const { stdout } = await run(process.execPath, [script]);
+  for (const line of [
+    'answered by exact (shipping-time)',
+    'answered by score (shipping-time)',
+    'answered by classifier (proof)',
+    'answered by llm, LLM called',
+    '3 of 4 answered without the LLM.',
+  ]) assert.ok(stdout.includes(line), `missing "${line}"`);
+});
