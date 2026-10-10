@@ -1,5 +1,5 @@
 // Dependency-free lint: every .js/.mjs file must parse (node --check). Every
-// text file must have no tabs, no trailing whitespace, a final newline and, for
+// text file must have no tabs, no em dashes, no trailing whitespace, a final newline and, for
 // code, lines of at most 120 characters (.editorconfig).
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -32,6 +32,7 @@ for (const file of files) {
   if (text.length && !text.endsWith('\n')) problems.push(`${file}: missing final newline`);
   text.split('\n').forEach((line, i) => {
     if (/\t/.test(line)) problems.push(`${file}:${i + 1}: tab`);
+    if (line.includes('\u2014')) problems.push(`${file}:${i + 1}: em dash`);
     if (/[ \t]+$/.test(line)) problems.push(`${file}:${i + 1}: trailing whitespace`);
     if (CODE.has(extname(file)) && line.length > MAX_LINE) problems.push(`${file}:${i + 1}: longer than ${MAX_LINE}`);
   });
