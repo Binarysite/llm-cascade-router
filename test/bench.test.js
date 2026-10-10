@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { measure, format } from '../bench/measure.js';
+import { measure, format, wilson95 } from '../bench/measure.js';
 import { answers } from '../examples/sticker-shop/answers.js';
 
 const run = promisify(execFile);
@@ -73,4 +73,16 @@ test('each set gets its own call counts', async () => {
   assert.equal(a.llmCalls, 1);
   assert.equal(b.llmCalls, 1);
   assert.equal(b.classifierCalls, a.classifierCalls);
+});
+
+test('wilson95 gives the 95% interval and the bench prints it under the share', async () => {
+  const round = (pair) => pair.map((x) => Number(x.toFixed(3)));
+  assert.deepEqual(round(wilson95(7, 24)), [0.149, 0.492]);
+  assert.deepEqual(round(wilson95(31, 48)), [0.504, 0.766]);
+  assert.deepEqual(wilson95(0, 0), [0, 0]);
+  const { stdout } = await run(process.execPath, [script]);
+  const share = (k, n, pct, lo, hi) => new RegExp(
+    `answered without the main LLM: ${k}/${n} \\(${pct}%\\)\\n {2}95% interval \\(Wilson\\): ${lo}% to ${hi}%`);
+  assert.match(stdout, share(31, 48, '64.6', '50.4', '76.6'));
+  assert.match(stdout, share(7, 24, '29.2', '14.9', '49.2'));
 });

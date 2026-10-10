@@ -8,6 +8,22 @@ const LAYERS = ['exact', 'score', 'classifier', 'llm', 'fallback'];
 const CHEAP = new Set(['exact', 'score', 'classifier']);
 
 /**
+ * 95% Wilson score interval for k successes out of n, as [low, high].
+ * @param {number} k
+ * @param {number} n
+ * @returns {[number, number]}
+ */
+export function wilson95(k, n) {
+  if (!n) return [0, 0];
+  const z = 1.959963984540054;
+  const p = k / n;
+  const d = 1 + (z * z) / n;
+  const center = (p + (z * z) / (2 * n)) / d;
+  const half = (z * Math.sqrt((p * (1 - p)) / n + (z * z) / (4 * n * n))) / d;
+  return [Math.max(0, center - half), Math.min(1, center + half)];
+}
+
+/**
  * Route every message through a fresh router, so call counts belong to this bank only.
  * @param {ReadonlyArray<{ text: string, expect: string }>} bank `expect` is an answer id or 'llm'
  */
@@ -46,6 +62,9 @@ export async function measure(bank) {
   // Each classifier answer saves one main-LLM call, and every classifier call is
   // paid, so a model in that slot only saves money below this cost ratio.
   const breakEven = classifierCalls ? classifierAnswers / classifierCalls : 0;
+  const answeredWithoutMainLlm = rows.filter((r) => CHEAP.has(r.layer)).length;
+  const interval95 = /** @type {[number, number]} */ (
+    wilson95(answeredWithoutMainLlm, rows.length).map((x) => Number(x.toFixed(3))));
   return {
     total: rows.length,
     withFixedAnswer: rows.filter((r) => r.expect !== 'llm').length,
@@ -53,7 +72,8 @@ export async function measure(bank) {
     classifierCalls,
     classifierAnswers,
     breakEven: Number(breakEven.toFixed(3)),
-    answeredWithoutMainLlm: rows.filter((r) => CHEAP.has(r.layer)).length,
+    answeredWithoutMainLlm,
+    interval95,
     byLayer,
     wrong: rows.filter((r) => r.verdict === 'wrong'),
     escalated: rows.filter((r) => r.verdict === 'escalated'),
@@ -96,6 +116,8 @@ export function format(report, { verbose = false } = {}) {
   }
   out.push('');
   out.push(`answered without the main LLM: ${noModel}/${total} (${pct(noModel)})`);
+  const [lo, hi] = report.interval95.map((x) => (100 * x).toFixed(1));
+  out.push(`  95% interval (Wilson): ${lo}% to ${hi}%`);
   out.push(`ceiling: ${fixable}/${total} (${pct(fixable)}), the messages that have a fixed answer`);
   out.push(`LLM calls: ${report.llmCalls}, against ${total} if every message went to the model`);
   out.push(`classifier calls: ${classifierCalls}, answers: ${classifierAnswers} (keyword mock here, not a model)`);
