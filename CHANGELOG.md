@@ -6,6 +6,8 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-10
+
 ### Added
 
 - `npm run ask` with no message routes four demo messages, one per layer, and prints each
@@ -50,5 +52,6 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Type declarations checked against the code, a dependency-free lint, and CI on Node 22 and
   24.
 
-[Unreleased]: https://github.com/Binarysite/llm-cascade-router/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Binarysite/llm-cascade-router/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Binarysite/llm-cascade-router/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Binarysite/llm-cascade-router/releases/tag/v0.1.0

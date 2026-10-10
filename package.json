@@ -1,6 +1,6 @@
 {
   "name": "llm-cascade-router",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Answer each chat message with the cheapest layer that can: exact match, local scoring, a cheap classifier, and only then the LLM. Zero runtime dependencies.",
   "type": "module",
   "private": true,

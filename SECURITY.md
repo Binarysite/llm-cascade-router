@@ -27,7 +27,7 @@ confirmed issue gets a fix and a mention in the [changelog](CHANGELOG.md).
 - **`main` rejects force pushes and branch deletion**, through a repository ruleset that has
   no bypass. It does not require a pull request or status checks: the maintainer pushes
   directly.
-- There is no npm package. The v0.1.0 tag is installed from GitHub.
+- There is no npm package. The v0.1.1 tag is installed from GitHub.
 
 ## Data flow
 

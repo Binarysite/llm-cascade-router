@@ -176,7 +176,7 @@ The method carries over, the numbers do not: label your real messages, keep some
 aside, run them, read `wrong`, then the share. The CLI does that for a JSON
 config and a JSON list of `{ "text", "expect" }`, where `expect` is an answer id
 or `"llm"`. It runs layers 1 and 2 and a counting mock LLM, with no classifier
-and no network. It is on `main`, after the v0.1.0 tag, so use a clone:
+and no network. It ships in v0.1.1, so use a clone or that tag:
 
 ```bash
 npm run measure                  # the starter in examples/starter: 10 messages, 3 answers
@@ -225,7 +225,7 @@ shipping-time answer. Layers 3 and 4 are optional.
 
 ## Using it
 
-Install with `npm install github:Binarysite/llm-cascade-router#v0.1.0`. There is
+Install with `npm install github:Binarysite/llm-cascade-router#v0.1.1`. There is
 no npm package.
 
 ```js
@@ -343,7 +343,7 @@ customer yet, one manual test of 13 turns moved from 3 to 6 answered without a
 model call once fixed answers went in front of the model. An anecdote, not a
 benchmark; the bench above is the reproducible number. This repo is written from
 scratch around an invented sticker shop. Built with Claude Code; the design
-decisions and reviews are mine. Status: v0.1.0, not on npm.
+decisions and reviews are mine. Status: v0.1.1, not on npm.
 
 Author: Alfredo Rosadilla ([@Binarysite](https://github.com/Binarysite)). Released under the MIT license, see [LICENSE](LICENSE).
 Copyright AURELIAI SpA: the router was extracted from code the company owns and rewritten from scratch for this repo; written by Alfredo Rosadilla.
