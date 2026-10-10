@@ -6,7 +6,10 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
 
 const DIRS = ['src', 'test', 'examples', 'bench', 'scripts', 'docs', 'typecheck', '.github'];
-const ROOT_FILES = ['README.md', 'package.json', 'index.d.ts', 'claude.d.ts', 'tsconfig.json', 'tsconfig.strict.json'];
+const ROOT_FILES = [
+  'README.md', 'CHANGELOG.md', 'SECURITY.md', 'CONTRIBUTING.md',
+  'package.json', 'index.d.ts', 'claude.d.ts', 'tsconfig.json', 'tsconfig.strict.json',
+];
 const MAX_LINE = 120;
 const CODE = new Set(['.js', '.mjs', '.ts', '.yml']);
 const TEXT = new Set(['.js', '.mjs', '.ts', '.json', '.md', '.yml']);

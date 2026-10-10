@@ -173,4 +173,8 @@ npm run typecheck   # tsc --checkJs on src/, tsc --strict on the .d.ts files
 npm run bench -- --verbose
 ```
 
-Author: Alfredo Rosadilla ([@Binarysite](https://github.com/Binarysite)). Copyright AURELIAI SpA, released under the MIT license, see [LICENSE](LICENSE).
+Author: Alfredo Rosadilla ([@Binarysite](https://github.com/Binarysite)). Released under the MIT license, see [LICENSE](LICENSE).
+Copyright AURELIAI SpA: the router was extracted from code the company owns and rewritten from scratch for this repo; written by Alfredo Rosadilla.
+What changed in each version is in the [changelog](CHANGELOG.md); how to report a
+vulnerability, and what the Claude adapters send, is in [SECURITY.md](SECURITY.md); how to
+contribute is in [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -1,0 +1,48 @@
+name: Bug report
+description: Something the router does that it should not, or fails to do.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use invented data only: no real customer messages or API keys.
+        For a security problem, do not open an issue; see SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: A release tag or a commit SHA.
+      placeholder: v0.1.0
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      description: The output of `node --version`.
+      placeholder: v22.12.0
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Config and message that reproduce it
+      description: The smallest `createRouter` config and the message you routed, with invented data.
+      render: js
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: Which layer should have answered, and with which answer id.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: The result, including `layer`, `answerId`, `reason` and the trace.
+      render: json
+    validations:
+      required: true
