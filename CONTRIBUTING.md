@@ -21,7 +21,7 @@ npm run lint
 npm run typecheck
 npm audit --omit=dev --audit-level=high
 npm test
-npm run bench   # exits 1 on a wrong fixed answer
+npm run bench   # exits 1 on a wrong fixed answer in the in-sample set
 ```
 
 ## Changes
@@ -29,6 +29,8 @@ npm run bench   # exits 1 on a wrong fixed answer
 - One test per change, in `test/`, with `node:test`. A bug fix starts with a test that fails.
 - Update `index.d.ts` or `claude.d.ts` for public API changes, and the README if a command
   or its output changes.
+- Do not edit the example's vocabulary to make `bench/held-out.json` score better, or the
+  file itself; see [DESIGN.md](docs/DESIGN.md#the-held-out-set).
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/), one change
   per commit. Add a line under Unreleased in `CHANGELOG.md` for anything a user would notice.
 - Keep it simple: no new dependency, and no abstraction before its second use.

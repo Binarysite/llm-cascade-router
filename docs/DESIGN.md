@@ -58,6 +58,24 @@ mostly in `config.js`, which reads an untyped config), checks in
 `typecheck/conform.ts` that `index.d.ts` and `claude.d.ts` match the exports,
 and runs `tsc --strict` on those declarations (`tsconfig.strict.json`).
 
+## The held-out set
+
+`bench/messages.json` was written by the same person who wrote the answers'
+phrases, synonyms and stopwords, so its numbers are in-sample: they show the
+mechanism works on the words it was built for. `bench/held-out.json` was
+written for the same shop without looking at that vocabulary, labelled, saved,
+and only then run. Its first run gave 1 wrong fixed answer and 7 of 24 answered
+without the main LLM, against 0 wrong and 31 of 48 in-sample.
+
+**Rule: the vocabulary is never changed to make the held-out set score better.**
+Once a set has been used to tune, it is in-sample, and the honest gap between
+the two numbers is gone. A fix for a held-out failure has to be justified on
+its own (a new in-sample message, a test) and the held-out number reported as
+it then comes out. A test pins the file's SHA-256, so its messages and labels
+cannot be edited quietly after a run; a new round of unseen messages goes in a
+new file. For the same reason the held-out set does not change the bench's
+exit code: a CI gate on it would push toward tuning on it.
+
 ## Threat model
 
 The router is not a safety layer, but its shape limits what a hostile message
@@ -79,7 +97,9 @@ What the final LLM says is out of scope.
 - **One message at a time.** "Yes, that one" reaches the LLM, and the FAQ
   text can follow a complaint. Layers 1 and 2 never see history.
 - **Several questions in one message get at most one fixed answer.** `maxTokens`
-  sends long messages past layer 2; the Claude classifier prompt asks for no
+  sends long messages past layer 2, but a short one gets through: the held-out
+  wrong answer is "how long does shipping take and can I pay with apple pay?",
+  answered with shipping time alone. The Claude classifier prompt asks for no
   answer on multi-part messages, which is a request, not a guarantee.
 - **Classifier confidence is not calibrated.** A self-reported 0.9 is not a 90%
   hit rate. Set `minConfidence` from a labelled bench run.
@@ -93,7 +113,8 @@ What the final LLM says is out of scope.
   tools; cap long messages before calling `route`.
 - **No safety layer and no semantic cache.** Put injection and personal-data
   checks before the router; reusing past LLM replies is a different trade-off.
-- **The benchmark is small and self-made**, with mock layers.
+- **The benchmark is small and self-made**, with mock layers: 48 in-sample
+  messages and 24 held-out ones, all invented by one person.
 - **A timed-out call may still be billed** by the provider.
 
 ## Source layout
@@ -106,4 +127,5 @@ What the final LLM says is out of scope.
 | `src/timeout.js` | Per-layer deadline linked to the caller's signal |
 | `src/layers/` | One file per layer |
 | `src/adapters/claude.js` | Optional Claude adapters |
-| `examples/sticker-shop/`, `bench/` | The invented shop, its mocks and the labelled bank |
+| `examples/sticker-shop/` | The invented shop and its mocks |
+| `bench/` | The in-sample and held-out banks, `measure.js` and the runner |

@@ -35,5 +35,5 @@ jobs:
       # tool such as TypeScript cannot turn CI red without a code change.
       - run: npm audit --omit=dev --audit-level=high
       - run: npm test
-      # Exits 1 if a cheap layer gives a wrong answer on the bench bank.
+      # Exits 1 if a cheap layer gives a wrong answer on the in-sample bank.
       - run: npm run bench

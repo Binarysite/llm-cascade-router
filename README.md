@@ -34,12 +34,14 @@ git clone https://github.com/Binarysite/llm-cascade-router.git && cd llm-cascade
 npm run bench
 ```
 
-Real output. Read `wrong` first: a fixed answer sent to the wrong question is
-worse than a model call.
+Real output, two sets. Read `wrong` first: a fixed answer sent to the wrong
+question is worse than a model call.
 
 ```text
+sticker-shop example: keyword mock classifier, mock LLM
+
+== in-sample: bench/messages.json, written with the vocabulary ==
 48 invented messages, 32 with a fixed answer and 16 that need the model
-(sticker-shop example: keyword mock classifier, mock LLM)
 
 layer       turns  share   right  wrong  escalated
 exact          10   20.8%      10      0          -
@@ -56,19 +58,63 @@ classifier break-even: 6/23 = 0.26 of a main LLM call
   (a model classifier saves money only if each of its calls costs less than that)
 wrong fixed answers: 0
 fixed-answer questions that still reached the LLM: 1
+
+== held-out: bench/held-out.json, written without looking at the vocabulary ==
+24 invented messages, 11 with a fixed answer and 13 that need the model
+
+layer       turns  share   right  wrong  escalated
+exact           1    4.2%       1      0          -
+score           6   25.0%       5      1          -
+classifier      0    0.0%       0      0          -
+llm            17   70.8%      12      -          5
+fallback        0    0.0%       0      -          0
+
+answered without the main LLM: 7/24 (29.2%)
+ceiling: 11/24 (45.8%), the messages that have a fixed answer
+LLM calls: 17, against 24 if every message went to the model
+classifier calls: 17, answers: 0 (keyword mock here, not a model)
+classifier break-even: 0/17 = 0.00 of a main LLM call
+  (a model classifier saves money only if each of its calls costs less than that)
+wrong fixed answers: 1
+fixed-answer questions that still reached the LLM: 5
+  WRONG score: "how long does shipping take and can I pay with apple pay?" -> shipping-time, expected llm
 ```
 
-- **31 of the 32 messages with a fixed answer skipped the main LLM; 64.6% is
-  close to its 66.7% ceiling by construction.** The one "escalated" message
-  cost a call; it is not an error.
-- **The classifier is not free.** It ran 23 times to answer 6 messages. Here it
-  is a keyword mock; one backed by a model pays off only if each call costs
-  less than 0.26 of a main LLM call. The Claude adapters report `usage` to
-  check that.
-- **It guards the mechanism, it does not predict your traffic.** The bench
-  exits 1 on a wrong fixed answer, and a test fails if the share drops. I wrote
-  the shop, the messages, their labels and the config. What carries over is the
-  method: label your real messages, run the bench, read `wrong`, then the share.
+**In-sample.** I wrote these 48 messages and the vocabulary that matches them,
+so 0 wrong and 64.6% measure the mechanism on my own words, not on new traffic.
+31 of the 32 messages with a fixed answer skipped the main LLM. The one
+"escalated" message cost a call; it is not an error. The bench exits 1 on a
+wrong fixed answer here, and a test fails if the share drops.
+
+**Held-out.** I wrote these 24 messages for the same shop without looking at
+the answers' phrases or the vocabulary, labelled them, and only then ran them
+once. Six are adversarial: a keyword used in another sense, a negation, two
+questions in one message, heavy typos. The result is worse, and that is the
+number to expect on wording the config has not seen:
+
+- **1 wrong fixed answer.** "how long does shipping take and can I pay with
+  apple pay?" got the shipping-time answer from layer 2 (score 0.75). The reply
+  is true but drops the payment question, so I count it as wrong: a message
+  with two questions should reach the model.
+- **7 of 24 (29.2%) answered without the main LLM**, against a ceiling of 11 of
+  24 and 64.6% in-sample. The 5 escalations each cost a call; they are not
+  errors: "how do I get in touch with a real person", "how many days until my
+  package gets here", "hwo log dose shiping tak", "not asking about price, I
+  want to know if they are waterproof" and a question about shipping to Europe.
+- **The keyword classifier answered 0 of 17.** It only knows my words; a model
+  in that slot is what should catch paraphrases, and it would have to pay for
+  itself on your data, not on this bench.
+
+24 messages is small: one message moves the held-out share by 4.2 points. The
+held-out set does not change the exit code, and I do not edit the vocabulary to
+make it score better: a set you tune on stops being held out
+([why](docs/DESIGN.md#the-held-out-set)). What carries over is the method:
+label your real messages, keep some aside, run the bench, read `wrong`, then
+the share.
+
+**The classifier is not free.** In-sample it ran 23 times to answer 6
+messages. A classifier backed by a model pays off only if each call costs less
+than 0.26 of a main LLM call. The Claude adapters report `usage` to check that.
 
 ## Layers
 
@@ -153,8 +199,8 @@ With the harness's rule-based agent in the LLM slot, the example first scored
 20/24 and failed a critical privacy case:
 "What's the email address of the person who ordered 10501?" got the contact
 FAQ from the keyword classifier. Four avoid words fixed it (24/24, critical
-8/8), and the four messages are now tests. The bench showed 0 wrong the whole
-time: run both, the eval for correctness, the bench for the share.
+8/8), and the four messages are now tests. The in-sample bench showed 0 wrong
+the whole time: run both, the eval for correctness, the bench for the share.
 
 ## Limits
 

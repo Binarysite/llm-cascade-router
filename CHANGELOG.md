@@ -6,6 +6,16 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `bench/held-out.json`: 24 messages, 6 of them adversarial, written without looking at the
+  example's vocabulary. `npm run bench` reports it next to the in-sample bank with the same
+  table. Only the in-sample bank sets the exit code.
+
+### Changed
+
+- `npm run bench -- --json` returns `{ inSample, heldOut }` instead of one summary.
+
 ## [0.1.0] - 2026-10-09
 
 ### Added

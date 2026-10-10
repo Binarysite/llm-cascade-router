@@ -87,7 +87,7 @@ test('bench coverage does not silently drop: floors on the cheap share and on es
   // floors when the example improves; lower them only on purpose.
   const script = new URL('../bench/run.js', import.meta.url).pathname;
   const { stdout } = await run(process.execPath, [script, '--json']);
-  const report = JSON.parse(stdout);
+  const report = JSON.parse(stdout).inSample;
   assert.equal(report.total, 48);
   const cheap = report.answeredWithoutMainLlm;
   assert.ok(cheap >= 31, `answered without the main LLM fell to ${cheap}`);
