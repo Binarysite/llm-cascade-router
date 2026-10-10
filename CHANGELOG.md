@@ -21,6 +21,7 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Security
 
+- Provider error bodies are no longer copied into thrown errors (they can echo a masked key).
 - `bench/real.js` no longer stores provider error bodies in the report (they can echo a masked key).
 
 ## [0.1.1] - 2026-10-10

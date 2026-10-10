@@ -62,6 +62,27 @@ test('createClaudeLlm turns HTTP errors, refusals and truncation into throws', a
   await assert.rejects(cut({ message: 'x' }), /max_tokens/);
 });
 
+test('an HTTP error keeps the status and the standard error.type, never the body', async () => {
+  const echoed = 'invalid x-api-key sk-xxxx, seen as sk-ab***yz';
+  const json = fakeFetch({ type: 'error', error: { type: 'authentication_error', message: echoed } }, 401).f;
+  const plain = async () => ({ ok: false, status: 503, text: async () => `upstream down, key sk-xxxx` });
+  const weird = async () => ({ ok: false, status: 400, text: async () => '{"error":{"type":"sk-xxxx"}}' });
+  const cases = [
+    [json, 401, 'createClaudeLlm: HTTP 401: authentication_error'],
+    [plain, 503, 'createClaudeLlm: HTTP 503'],
+    [weird, 400, 'createClaudeLlm: HTTP 400'],
+  ];
+  for (const [f, status, message] of cases) {
+    const generate = createClaudeLlm({ apiKey: 'k', model: 'm', fetch: f });
+    await assert.rejects(generate({ message: 'x' }), (err) => {
+      assert.equal(err.message, message);
+      assert.equal(err.status, status);
+      assert.ok(!err.message.includes('sk-'), err.message);
+      return true;
+    });
+  }
+});
+
 test('the adapters refuse to start without a key or a model', () => {
   const saved = process.env.ANTHROPIC_API_KEY;
   delete process.env.ANTHROPIC_API_KEY;

@@ -12,6 +12,22 @@ const API_URL = 'https://api.anthropic.com/v1/messages';
 const API_VERSION = '2023-06-01';
 
 /**
+ * The `error.type` of a JSON error body (for example "rate_limit_error"), or
+ * undefined. Anything else in the body is dropped.
+ * @param {Response} res
+ * @returns {Promise<string | undefined>}
+ */
+async function errorType(res) {
+  let type;
+  try {
+    type = JSON.parse(await res.text())?.error?.type;
+  } catch {
+    return undefined;
+  }
+  return typeof type === 'string' && /^[a-z0-9_]{1,60}$/.test(type) ? type : undefined;
+}
+
+/**
  * @param {{ apiKey?: string, model?: string, fetch?: typeof fetch, url?: string }} options
  *   `url` overrides the endpoint (for a local fake server in tests). The API key
  *   is sent to it, so only point it at hosts you trust.
@@ -36,8 +52,10 @@ function client({ apiKey, model, fetch: f, url }, who) {
       signal,
     });
     if (!res.ok) {
-      const detail = (await res.text().catch(() => '')).slice(0, 300);
-      throw Object.assign(new Error(`${who}: HTTP ${res.status} ${detail}`.trim()), { status: res.status });
+      // The body is never copied into the message: a provider can echo a masked key in it.
+      // Only the standard error.type survives, and only when it is a plain identifier.
+      const type = await errorType(res);
+      throw Object.assign(new Error(`${who}: HTTP ${res.status}${type ? `: ${type}` : ''}`), { status: res.status });
     }
     const data = await res.json();
     if (data.stop_reason === 'refusal') throw new Error(`${who}: the model declined`);
