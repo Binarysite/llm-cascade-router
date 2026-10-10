@@ -19,6 +19,10 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - The README and `docs/DESIGN.md` no longer say the bench was never run against a model.
 
+### Security
+
+- `bench/real.js` no longer stores provider error bodies in the report (they can echo a masked key).
+
 ## [0.1.1] - 2026-10-10
 
 ### Added

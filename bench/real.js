@@ -9,6 +9,7 @@
 // The key is read from the environment and never printed or written.
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { measure, format } from './measure.js';
+import { safeErrorLabel } from './safe-error.js';
 import { createClaudeClassifier } from '../src/adapters/claude.js';
 import { createStickerShopRouter } from '../examples/sticker-shop/router.js';
 
@@ -51,8 +52,8 @@ function makeDeepseek() {
       signal,
     });
     if (!res.ok) {
-      const detail = (await res.text().catch(() => '')).slice(0, 200);
-      throw new Error(`deepseek HTTP ${res.status} ${detail}`);
+      // The body is never read: it can echo a masked key, and nothing from it may reach the report.
+      throw new Error(`deepseek HTTP ${res.status}`);
     }
     const data = await res.json();
     const out = JSON.parse(data.choices[0].message.content);
@@ -84,7 +85,7 @@ const timed = async (input) => {
     return r;
   } catch (e) {
     stats.errors += 1;
-    if (stats.errorSamples.length < 3) stats.errorSamples.push(String(e.message).slice(0, 200));
+    if (stats.errorSamples.length < 3) stats.errorSamples.push(safeErrorLabel(e));
     throw e;
   } finally {
     stats.latencies.push(performance.now() - t0);
