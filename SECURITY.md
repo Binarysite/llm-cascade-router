@@ -16,6 +16,19 @@ and what happened. Use invented data: do not attach real customer messages or re
 This is a one-person project, so there is no bug bounty and no guaranteed response time. A
 confirmed issue gets a fix and a mention in the [changelog](CHANGELOG.md).
 
+## Supply chain
+
+- **No runtime dependencies.** CI runs `npm audit --omit=dev --audit-level=high`. The only
+  dev dependencies are TypeScript and the Node types.
+- **Actions are pinned by commit SHA**, with the version in a comment, and Dependabot keeps
+  them current. CI and CodeQL run with read-only permissions, and CodeQL's job adds only
+  `security-events: write`.
+- **CodeQL** scans the JavaScript on every push to `main`, on pull requests and weekly.
+- **`main` rejects force pushes and branch deletion**, through a repository ruleset that has
+  no bypass. It does not require a pull request or status checks: the maintainer pushes
+  directly.
+- There is no npm package. The v0.1.0 tag is installed from GitHub.
+
 ## Data flow
 
 The router has no runtime dependencies and sends nothing anywhere by itself. Layers 1 and 2

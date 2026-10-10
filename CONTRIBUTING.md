@@ -20,8 +20,9 @@ npm ci
 npm run lint
 npm run typecheck
 npm audit --omit=dev --audit-level=high
-npm test
-npm run bench   # exits 1 on a wrong fixed answer in the in-sample set
+npm run coverage   # npm test with a floor of 95% lines and 90% branches on src/
+npm run bench      # exits 1 on a wrong fixed answer in the in-sample set
+npm run measure    # the starter config against its ten messages
 ```
 
 ## Changes
@@ -33,4 +34,5 @@ npm run bench   # exits 1 on a wrong fixed answer in the in-sample set
   file itself; see [DESIGN.md](docs/DESIGN.md#the-held-out-set).
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/), one change
   per commit. Add a line under Unreleased in `CHANGELOG.md` for anything a user would notice.
+- Text files take no em dashes; the lint rejects them.
 - Keep it simple: no new dependency, and no abstraction before its second use.

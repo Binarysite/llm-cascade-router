@@ -76,6 +76,10 @@ cannot be edited quietly after a run; a new round of unseen messages goes in a
 new file. For the same reason the held-out set does not change the bench's
 exit code: a CI gate on it would push toward tuning on it.
 
+The bench prints a 95% Wilson interval next to each share answered without the
+main LLM. On 24 messages it is wide (14.9% to 49.2% for 7 of 24), which is the
+point: do not read a difference of a few points between two runs as progress.
+
 ## Threat model
 
 The router is not a safety layer, but its shape limits what a hostile message
@@ -114,7 +118,8 @@ What the final LLM says is out of scope.
 - **No safety layer and no semantic cache.** Put injection and personal-data
   checks before the router; reusing past LLM replies is a different trade-off.
 - **The benchmark is small and self-made**, with mock layers: 48 in-sample
-  messages and 24 held-out ones, all invented by one person.
+  messages and 24 held-out ones, all invented by one person. It has not been run
+  with a real model in layers 3 or 4.
 - **A timed-out call may still be billed** by the provider.
 
 ## Source layout
@@ -128,4 +133,6 @@ What the final LLM says is out of scope.
 | `src/layers/` | One file per layer |
 | `src/adapters/claude.js` | Optional Claude adapters |
 | `examples/sticker-shop/` | The invented shop and its mocks |
-| `bench/` | The in-sample and held-out banks, `measure.js` and the runner |
+| `bench/` | The in-sample and held-out banks, `measure.js` (with the Wilson interval) and the runner |
+| `bin/cascade.js` | `npm run measure`: a JSON config against your own labelled messages |
+| `examples/starter/` | A three-answer config and ten messages copied from the sticker shop |

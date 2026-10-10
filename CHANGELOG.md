@@ -6,6 +6,21 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `npm run ask` with no message routes four demo messages, one per layer, and prints each
+  layer's reason. With a message it still prints the full result as JSON.
+- `npm run bench` prints a 95% Wilson interval under the share answered without the main LLM.
+- `bin/cascade.js` (`npm run measure`): run a JSON config against your own labelled messages
+  with layers 1 and 2 and a counting mock LLM. `examples/starter/` holds a config and ten
+  messages copied from the sticker shop. Exit codes: 0 ok, 1 wrong fixed answer, 2 setup problem.
+- A CodeQL workflow, and a coverage floor on `src/` (95% lines, 90% branches) in CI.
+- The lint rejects em dashes in text files.
+
+### Changed
+
+- The README starts with a 30-second run, a diagram of the layers, the decisions and the limits.
+
 ## [0.1.0] - 2026-10-09
 
 ### Added
