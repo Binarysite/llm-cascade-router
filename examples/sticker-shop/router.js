@@ -9,16 +9,19 @@ import { createMockLlm } from './llm.js';
  * @param {{
  *   classify?: import('../../index.js').Classify,
  *   generate?: import('../../index.js').Generate,
+ *   classifierTimeoutMs?: number,
  *   onResult?: (result: import('../../index.js').RouteResult) => void | Promise<void>,
  * }} [overrides]
  */
-export function createStickerShopRouter({ classify, generate, onResult } = {}) {
+export function createStickerShopRouter({ classify, generate, onResult, classifierTimeoutMs = 250 } = {}) {
   return createRouter({
     answers,
     synonyms,
     stopwords,
     score: { minScore: 0.5, minMargin: 0.1, maxTokens: 10 },
-    classifier: { classify: classify ?? createKeywordClassifier(), minConfidence: 0.65, timeoutMs: 250 },
+    classifier: {
+      classify: classify ?? createKeywordClassifier(), minConfidence: 0.65, timeoutMs: classifierTimeoutMs,
+    },
     llm: { generate: generate ?? createMockLlm(), timeoutMs: 8000 },
     fallback,
     ...(onResult ? { onResult } : {}),

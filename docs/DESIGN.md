@@ -117,9 +117,9 @@ What the final LLM says is out of scope.
   tools; cap long messages before calling `route`.
 - **No safety layer and no semantic cache.** Put injection and personal-data
   checks before the router; reusing past LLM replies is a different trade-off.
-- **The benchmark is small and self-made**, with mock layers: 48 in-sample
-  messages and 24 held-out ones, all invented by one person. It has not been run
-  with a real model in layers 3 or 4.
+- **The benchmark is small and self-made**: 48 in-sample messages and 24
+  held-out ones, all invented by one person. Layer 3 has been run with
+  `deepseek-chat` once (README, "With a real model in layer 3") and layer 4 never.
 - **A timed-out call may still be billed** by the provider.
 
 ## Source layout

@@ -31,14 +31,15 @@ export function wilson95(k, n) {
  *     route: (message: string) => Promise<import('../index.js').RouteResult>,
  *   },
  *   classifier?: boolean,
+ *   classifyWith?: import('../index.js').Classify | null,
  * }} [options] `build` makes the router (the sticker shop by default); `classifier: false`
- *   leaves layer 3 out
+ *   leaves layer 3 out; `classifyWith` replaces the keyword mock in layer 3
  */
-export async function measure(bank, { build = createStickerShopRouter, classifier = true } = {}) {
+export async function measure(bank, { build = createStickerShopRouter, classifier = true, classifyWith = null } = {}) {
   const llm = createMockLlm();
   // Count classifier calls too: with a real model in that slot, each one is a
   // small-model call, so "answered without the main LLM" is not "free".
-  const keyword = createKeywordClassifier();
+  const keyword = classifyWith ?? createKeywordClassifier();
   let classifierCalls = 0;
   /** @type {import('../index.js').Classify} */
   const classify = (input) => {
@@ -92,10 +93,12 @@ export async function measure(bank, { build = createStickerShopRouter, classifie
 /**
  * The same table for every bank, as lines of text.
  * @param {Awaited<ReturnType<typeof measure>>} report
- * @param {{ verbose?: boolean, noun?: string }} [options] `verbose` adds one line per message
+ * @param {{ verbose?: boolean, noun?: string, classifierNote?: string }} [options] `verbose` adds one line per message
  *   before the table; `noun` names the messages in the first line
  */
-export function format(report, { verbose = false, noun = 'invented messages' } = {}) {
+export function format(report, {
+  verbose = false, noun = 'invented messages', classifierNote = 'keyword mock here, not a model',
+} = {}) {
   const { total, withFixedAnswer: fixable, byLayer, classifierCalls, classifierAnswers } = report;
   const noModel = report.answeredWithoutMainLlm;
   const pct = (n) => `${(total ? (100 * n) / total : 0).toFixed(1)}%`;
@@ -132,7 +135,7 @@ export function format(report, { verbose = false, noun = 'invented messages' } =
   if (report.classifierConfigured === false) {
     out.push('classifier: not configured (layers 1 and 2, then the mock LLM)');
   } else {
-    out.push(`classifier calls: ${classifierCalls}, answers: ${classifierAnswers} (keyword mock here, not a model)`);
+    out.push(`classifier calls: ${classifierCalls}, answers: ${classifierAnswers} (${classifierNote})`);
     out.push(`classifier break-even: ${classifierAnswers}/${classifierCalls} = ${report.breakEven.toFixed(2)} `
       + 'of a main LLM call');
     out.push('  (a model classifier saves money only if each of its calls costs less than that)');

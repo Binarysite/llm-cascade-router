@@ -6,6 +6,19 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `npm run bench:real` (`bench/real.js`): both banks with a real model in layer 3, with
+  latency, token usage, cost and the break-even in dollars. First run, `deepseek-chat`:
+  in-sample 31/48 with 0 wrong, held-out 11/24 with 2 wrong, USD 0.0033 in total
+  (`reports/real-deepseek.json`). No Claude run yet.
+- `measure()` takes `classifyWith`, `format()` takes `classifierNote`, and the sticker-shop
+  router takes `classifierTimeoutMs`.
+
+### Changed
+
+- The README and `docs/DESIGN.md` no longer say the bench was never run against a model.
+
 ## [0.1.1] - 2026-10-10
 
 ### Added
