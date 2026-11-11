@@ -7,8 +7,22 @@ import { createClassifierLayer } from './layers/classifier.js';
 import { createLlmLayer } from './layers/llm.js';
 import { LayerTimeoutError, CallerAbortError } from './timeout.js';
 
+/** Longest error message copied from an injected function into the trace. */
+export const MAX_ERROR_CHARS = 200;
+
+/** @param {number} start */
 const ms = (start) => Math.round((performance.now() - start) * 100) / 100;
-const describe = (err) => (err instanceof Error ? `${err.name}: ${err.message}` : String(err));
+/** @param {string} text @param {number} max */
+const cap = (text, max) => (text.length > max ? `${text.slice(0, max)}...` : text);
+/**
+ * What the trace keeps of an error thrown by an injected function: its name and
+ * at most MAX_ERROR_CHARS of its message (a provider error can be long, or echo input).
+ * @param {unknown} err
+ */
+const describe = (err) => {
+  if (!(err instanceof Error)) return cap(String(err), MAX_ERROR_CHARS);
+  return `${cap(String(err.name), 60)}: ${cap(String(err.message), MAX_ERROR_CHARS)}`;
+};
 
 /**
  * Build a router from a config. Throws RouterConfigError on a bad config;
@@ -28,8 +42,8 @@ export function createRouter(config) {
   });
   /** @type {import('./layers/types.js').Layer[]} */
   const layers = [createExactLayer(cfg), createScoreLayer(cfg, vocabulary)];
-  if (cfg.classifier) layers.push(createClassifierLayer(cfg, vocabulary));
-  if (cfg.llm) layers.push(createLlmLayer(cfg));
+  if (cfg.classifier) layers.push(createClassifierLayer(cfg.answers, cfg.classifier, vocabulary));
+  if (cfg.llm) layers.push(createLlmLayer(cfg.llm));
 
   /**
    * Answer one message with the cheapest layer that can.
@@ -46,6 +60,7 @@ export function createRouter(config) {
     /** @type {import('../index.js').TraceStep[]} */
     const trace = [];
 
+    /** @param {Omit<import('../index.js').RouteResult, 'llmCalled' | 'latencyMs' | 'trace'>} fields */
     const finish = (fields) => {
       const result = {
         ...fields,
@@ -54,10 +69,7 @@ export function createRouter(config) {
         trace,
       };
       if (cfg.onResult) {
-        // A broken logger must not break the turn: a sync throw is caught here
-        // and an async logger's rejection is swallowed, so it never becomes an
-        // unhandled rejection. onResult runs before route() resolves, so a slow
-        // synchronous logger delays the reply; do slow work asynchronously.
+        // A broken logger must not break the turn: sync throws and async rejections are both swallowed.
         try {
           const pending = cfg.onResult(result);
           if (pending && typeof pending.then === 'function') pending.then(undefined, () => {});
@@ -67,6 +79,7 @@ export function createRouter(config) {
       }
       return result;
     };
+    /** @param {string} reason */
     const fallback = (reason) => finish({ reply: cfg.fallback, layer: 'fallback', answerId: null, reason });
 
     if (typeof message !== 'string') return fallback('message is not a string');
@@ -80,6 +93,7 @@ export function createRouter(config) {
     for (const layer of layers) {
       if (signal?.aborted) return fallback('aborted by caller');
       const t0 = performance.now();
+      /** @type {import('./layers/types.js').LayerOutcome} */
       let out;
       try {
         out = await layer.run({ message, normalized, tokens, avoidWords, context, signal });
@@ -94,11 +108,11 @@ export function createRouter(config) {
       trace.push({ layer: layer.name, ...step, latencyMs: ms(t0) });
       if (out.outcome === 'hit') {
         return finish({
-          reply,
+          reply: /** @type {string} */ (reply),
           layer: layer.name,
           answerId: out.answerId ?? null,
           reason: out.reason,
-          ...(output ? { llmOutput: output } : {}),
+          ...(output ? { llmOutput: /** @type {import('../index.js').LlmOutput} */ (output) } : {}),
         });
       }
     }

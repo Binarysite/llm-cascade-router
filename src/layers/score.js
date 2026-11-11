@@ -1,3 +1,4 @@
+/** @param {number} n */
 const round = (n) => Math.round(n * 1000) / 1000;
 /** Absorbs float error, so 0.6 - 0.5 still counts as a margin of 0.1. */
 const EPSILON = 1e-9;

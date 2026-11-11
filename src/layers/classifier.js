@@ -1,5 +1,6 @@
 import { withTimeout } from '../timeout.js';
 
+/** @param {number} n */
 const round = (n) => Math.round(n * 1000) / 1000;
 
 /**
@@ -14,14 +15,12 @@ const round = (n) => Math.round(n * 1000) / 1000;
  * and the router moves on. So is a choice whose `avoid` words appear in the
  * message: the classifier proposes, the config has the last word.
  *
- * @param {{
- *   answers: ReadonlyArray<{ id: string, reply: string, description: string }>,
- *   classifier: { classify: Function, minConfidence: number, timeoutMs: number },
- * }} config
+ * @param {ReadonlyArray<{ id: string, reply: string, description: string }>} answers
+ * @param {{ classify: import('../../index.js').Classify, minConfidence: number, timeoutMs: number }} classifier
  * @param {ReturnType<typeof import('../vocabulary.js').createVocabulary>} vocabulary
  * @returns {import('./types.js').Layer}
  */
-export function createClassifierLayer({ answers, classifier }, vocabulary) {
+export function createClassifierLayer(answers, classifier, vocabulary) {
   const { classify, minConfidence, timeoutMs } = classifier;
   const choices = Object.freeze(answers.map((a) => Object.freeze({ id: a.id, description: a.description })));
   const byId = new Map(answers.map((a) => [a.id, a]));
@@ -41,6 +40,7 @@ export function createClassifierLayer({ answers, classifier }, vocabulary) {
       // usage reaches the trace on every outcome, so a logger can count what layer 3 costs.
       const { choice, confidence, usage } = out;
       const extra = usage === undefined ? {} : { usage };
+      /** @param {import('./types.js').LayerOutcome} fields @returns {import('./types.js').LayerOutcome} */
       const step = (fields) => ({ ...fields, ...extra });
       if (choice === null || choice === undefined) return step({ outcome: 'miss', reason: 'classifier abstained' });
       if (typeof choice !== 'string') {
@@ -54,7 +54,8 @@ export function createClassifierLayer({ answers, classifier }, vocabulary) {
       }
       const answer = byId.get(choice);
       if (!answer) {
-        return step({ outcome: 'miss', reason: `unknown choice "${String(choice)}"`, confidence: round(confidence) });
+        const shown = choice.length > 60 ? `${choice.slice(0, 60)}...` : choice;
+        return step({ outcome: 'miss', reason: `unknown choice "${shown}"`, confidence: round(confidence) });
       }
       // The same guard as layer 2: an answer's avoid words veto it here too.
       const vetoed = vocabulary.vetoOf(choice, avoidWords);

@@ -9,12 +9,12 @@ export interface Answer {
   /** Sent to the user verbatim. */
   reply: string;
   /** Example questions. Layer 1 matches them exactly (after normalization), layer 2 scores against them. */
-  phrases: string[];
+  phrases: readonly string[];
   /**
    * Single words that veto this answer in layers 2 and 3, e.g. "damaged" on a shipping-time answer.
    * They match exactly after normalization and synonyms; a vetoed best answer is a miss.
    */
-  avoid?: string[];
+  avoid?: readonly string[];
   /** Let this answer's avoid words also match one edit away (words of 5+ letters, no digits). Default false. */
   avoidTypos?: boolean;
   /** What the classifier sees for this choice. Defaults to the first phrase. */
@@ -60,7 +60,7 @@ export interface ClassifierOptions {
   classify: Classify;
   /** Default 0.8 (an example value). */
   minConfidence?: number;
-  /** Default 1000 ms (an example value sized for one call to a small model; a local classifier needs less). */
+  /** Default 1000 ms, sized for one call to a small model. At most 2147483647 (the setTimeout limit). */
   timeoutMs?: number;
 }
 
@@ -77,16 +77,16 @@ export type Generate = (input: LlmInput) => string | LlmOutput | Promise<string 
 
 export interface LlmOptions {
   generate: Generate;
-  /** Default 10000 ms. */
+  /** Default 10000 ms. At most 2147483647 (the setTimeout limit). */
   timeoutMs?: number;
 }
 
 export interface RouterConfig {
-  answers: Answer[];
+  answers: readonly Answer[];
   /** `{ canonical: [variants] }`, single words only. Used by layer 2 and the avoid check. */
-  synonyms?: Record<string, string[]>;
+  synonyms?: Readonly<Record<string, readonly string[]>>;
   /** Words ignored by layer 2. */
-  stopwords?: string[];
+  stopwords?: readonly string[];
   score?: ScoreOptions;
   /** Omitted or null: layer 3 is skipped. */
   classifier?: ClassifierOptions | null;
@@ -148,8 +148,30 @@ export interface Router {
 /** Throws RouterConfigError on an invalid config. */
 export function createRouter(config: RouterConfig): Router;
 
-/** Validates a config and returns a frozen copy with defaults filled in. */
-export function validateConfig(config: RouterConfig): Readonly<RouterConfig>;
+/** An answer after validation: defaults filled in, frozen. */
+export interface NormalizedAnswer {
+  readonly id: string;
+  readonly reply: string;
+  readonly phrases: readonly string[];
+  readonly avoid: readonly string[];
+  readonly avoidTypos: boolean;
+  readonly description: string;
+}
+
+/** What validateConfig returns: frozen, defaults filled in, and itself a valid RouterConfig. */
+export interface NormalizedConfig {
+  readonly answers: readonly NormalizedAnswer[];
+  readonly synonyms: Readonly<Record<string, readonly string[]>>;
+  readonly stopwords: readonly string[];
+  readonly score: Readonly<Required<ScoreOptions>>;
+  readonly classifier: Readonly<Required<ClassifierOptions>> | null;
+  readonly llm: Readonly<Required<LlmOptions>> | null;
+  readonly fallback: string;
+  readonly onResult: ((result: RouteResult) => void | Promise<void>) | null;
+}
+
+/** Validates a raw config (any value) and returns a frozen, normalized copy. Throws RouterConfigError. */
+export function validateConfig(config: unknown): NormalizedConfig;
 
 export class RouterConfigError extends Error {
   constructor(problems: string[]);

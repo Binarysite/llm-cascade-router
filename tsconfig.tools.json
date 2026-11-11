@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "strict": false },
+  "include": ["examples/**/*.js", "bench/**/*.js", "bin/**/*.js", "index.d.ts", "claude.d.ts"]
+}

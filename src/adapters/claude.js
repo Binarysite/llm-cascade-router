@@ -8,6 +8,8 @@
  * (a Claude Haiku model is the natural fit for the classifier).
  */
 
+import { historyOf } from './shared.js';
+
 const API_URL = 'https://api.anthropic.com/v1/messages';
 const API_VERSION = '2023-06-01';
 
@@ -60,15 +62,17 @@ function client({ apiKey, model, fetch: f, url }, who) {
     const data = await res.json();
     if (data.stop_reason === 'refusal') throw new Error(`${who}: the model declined`);
     if (data.stop_reason === 'max_tokens') throw new Error(`${who}: reply cut off at max_tokens`);
-    const text = (data.content ?? []).filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
+    /** @type {Array<{ type: string, text?: string }>} */
+    const blocks = Array.isArray(data.content) ? data.content : [];
+    const text = blocks.filter((b) => b.type === 'text').map((b) => b.text ?? '').join('').trim();
     return { text, usage: data.usage, model: data.model, stopReason: data.stop_reason };
   };
 }
 
 /**
- * The LLM slot: `generate({ message, signal })` returns `{ reply, usage, model,
- * stopReason }`. The router keeps that object as `result.llmOutput`, so the
- * token usage of every LLM turn reaches your onResult logger.
+ * The LLM slot: `generate({ message, context, signal })` returns `{ reply, usage,
+ * model, stopReason }`, which the router keeps as `result.llmOutput`. Earlier
+ * turns go in `context.messages` (see historyOf); without them the call is single-turn.
  * @param {{
  *   model: string, system?: string, maxTokens?: number,
  *   apiKey?: string, fetch?: typeof fetch, url?: string,
@@ -76,12 +80,12 @@ function client({ apiKey, model, fetch: f, url }, who) {
  */
 export function createClaudeLlm({ system, maxTokens = 2048, ...rest }) {
   const send = client(rest, 'createClaudeLlm');
-  /** @param {{ message: string, signal?: AbortSignal }} input */
-  return async function generate({ message, signal }) {
+  /** @param {{ message: string, context?: unknown, signal?: AbortSignal }} input */
+  return async function generate({ message, context, signal }) {
     const { text, usage, model, stopReason } = await send({
       max_tokens: maxTokens,
       ...(system ? { system } : {}),
-      messages: [{ role: 'user', content: message }],
+      messages: [...historyOf(context), { role: 'user', content: message }],
     }, signal);
     return { reply: text, usage, model, stopReason };
   };
