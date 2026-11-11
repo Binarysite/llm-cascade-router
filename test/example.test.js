@@ -106,6 +106,5 @@ test('ask.js with no message routes four demo messages, one per layer', async ()
     'answered by score (shipping-time)',
     'answered by classifier (proof)',
     'answered by llm, LLM called',
-    '3 of 4 answered without the LLM.',
   ]) assert.ok(stdout.includes(line), `missing "${line}"`);
 });

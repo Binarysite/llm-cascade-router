@@ -1,14 +1,16 @@
-// The README's output blocks are real runs. Each block follows a marker line
+// The output blocks in the README and docs/RESULTS.md are real runs. Each block
+// follows a marker line
 //   <!-- output: <script> [args...] -->
 // and this script reruns the script with node and rewrites the block below it.
 // test/readme.test.js fails when a block and a fresh run differ.
-//   node scripts/readme-outputs.mjs          rewrite README.md
+//   node scripts/readme-outputs.mjs          rewrite the files
 //   node scripts/readme-outputs.mjs --check  exit 1 on drift
 import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const ROOT = new URL('../', import.meta.url);
 const MARKER = /^<!-- output: (.+) -->$/;
+export const DOCS = ['README.md', 'docs/RESULTS.md'];
 
 /** @param {string} text @returns {Array<{ command: string, start: number, end: number }>} line indexes of each block */
 export function findBlocks(text) {
@@ -17,9 +19,9 @@ export function findBlocks(text) {
   for (let i = 0; i < lines.length; i += 1) {
     const m = MARKER.exec(lines[i]);
     if (!m) continue;
-    if (lines[i + 1] !== '```text') throw new Error(`README line ${i + 2}: a \`\`\`text block must follow the marker`);
+    if (lines[i + 1] !== '```text') throw new Error(`line ${i + 2}: a \`\`\`text block must follow the marker`);
     const end = lines.indexOf('```', i + 2);
-    if (end < 0) throw new Error(`README line ${i + 2}: unclosed block`);
+    if (end < 0) throw new Error(`line ${i + 2}: unclosed block`);
     blocks.push({ command: m[1], start: i + 2, end });
   }
   return blocks;
@@ -41,17 +43,18 @@ export function refresh(text) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const path = new URL('README.md', ROOT);
-  const before = readFileSync(path, 'utf8');
-  const after = refresh(before);
-  if (process.argv.includes('--check')) {
-    if (after !== before) {
-      console.error('README output blocks differ from a fresh run: node scripts/readme-outputs.mjs');
-      process.exit(1);
+  let drift = false;
+  for (const doc of DOCS) {
+    const path = new URL(doc, ROOT);
+    const before = readFileSync(path, 'utf8');
+    const after = refresh(before);
+    if (process.argv.includes('--check')) {
+      if (after !== before) drift = true;
+      console.log(`${doc}: ${findBlocks(before).length} output blocks ${after === before ? 'match' : 'DIFFER'}`);
+    } else {
+      writeFileSync(path, after);
+      console.log(`${doc}: ${findBlocks(after).length} output blocks rewritten`);
     }
-    console.log(`README: ${findBlocks(before).length} output blocks match a fresh run`);
-  } else {
-    writeFileSync(path, after);
-    console.log(`README: ${findBlocks(after).length} output blocks rewritten`);
   }
+  if (drift) process.exit(1);
 }

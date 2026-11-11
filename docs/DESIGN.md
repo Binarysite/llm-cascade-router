@@ -57,9 +57,6 @@ hide a model error that a bench should count.
 their timeout or when the caller aborts. An implementation that ignores it is
 simply not waited for. A caller abort ends the turn with the fallback.
 
-**Defaults are examples.** Thresholds and timeouts were picked for the invented
-example, not tuned on real traffic. The bench is there to set them.
-
 **Zero runtime dependencies, ESM, Node 22+.** `npm run typecheck` runs
 `tsc --checkJs --strict` on `src/` (the raw config is typed `unknown` and
 narrowed by the validators), a non-strict pass on the examples, bench and CLI,
@@ -131,10 +128,10 @@ What the final LLM says is out of scope.
   tools; cap long messages before calling `route`.
 - **No safety layer and no semantic cache.** Put injection and personal-data
   checks before the router; reusing past LLM replies is a different trade-off.
-- **The benchmark is small and self-made**: 49 in-sample messages and 24
-  held-out ones, all invented by one person. Layer 3 has been run with
-  `deepseek-flash` through the OpenAI-compatible adapter (README, "With a real
-  model in layer 3"); the Claude adapters and layer 4 never against a live API.
+- **The sticker-shop banks are small and self-made** (49 in-sample, 24
+  held-out, one author); CLINC150 is the public check. Layer 3 has been run with
+  `deepseek-flash` through the OpenAI-compatible adapter; the Claude adapters
+  have not been run against the live API, and layer 4 is a mock in every bench.
 - **A timed-out call may still be billed** by the provider.
 
 ## Source layout
