@@ -1,0 +1,14 @@
+llm-cascade-router
+Copyright AURELIAI SpA. Released under the MIT license (see LICENSE).
+
+Third-party data, used by the benchmark and not bundled in the package:
+
+CLINC150 (oos-eval), https://github.com/clinc/oos-eval
+Copyright the authors, licensed under Creative Commons Attribution 3.0 Unported (CC BY 3.0),
+https://creativecommons.org/licenses/by/3.0/
+Larson et al., "An Evaluation Dataset for Intent Classification and Out-of-Scope Prediction",
+EMNLP-IJCNLP 2019.
+bench/clinc150/fetch.js downloads data/data_full.json and data/domains.json at commit
+828f8093932c8fe6ca7936c3d2e52903b1c523de and checks their SHA-256; the files are not committed.
+reports/clinc150*.json hold numbers computed from that data and, in clinc150-deepseek.json,
+row indexes into its test split. No change was made to the data.

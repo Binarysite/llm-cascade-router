@@ -149,6 +149,7 @@ What the final LLM says is out of scope.
 | `src/adapters/` | Optional Claude and OpenAI-compatible adapters |
 | `examples/sticker-shop/` | The invented shop and its mocks |
 | `src/eval.js` | `llm-cascade-router/eval`: `measure`, `format`, the mock LLM, Wilson and McNemar |
-| `bench/` | The in-sample and held-out banks and the runners |
+| `bench/` | The in-sample and held-out banks and the runners, the real-model bench and `cost.js` |
+| `bench/clinc150/` | The CLINC150 bench: fetch, setup, baselines, selection rule, chart |
 | `bin/cascade.js` | `npm run measure`: a JSON config against your own labelled messages |
 | `examples/starter/` | A three-answer config and ten messages copied from the sticker shop |

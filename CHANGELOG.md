@@ -31,7 +31,24 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   and a test fails when one differs from a fresh run.
 - The sticker-shop router takes `classifierTimeoutMs`, and `classify: null` to leave layer 3 out.
 
+- **A public out-of-scope benchmark on CLINC150** (`bench/clinc150/`, CC BY 3.0, fetched at a
+  pinned commit with SHA-256 checks, not committed). The 15 banking intents get fixed answers;
+  the other 135 intents and out-of-scope queries must reach the LLM. Thresholds are chosen on
+  validation, test is scored once: layers 1-2 answer 110 of 450 answerable test questions
+  right with 2 wrong (precision 98.2%, 95% interval 93.7% to 99.5%). Baselines on the same
+  split: a TF-IDF nearest neighbour alone and in layer 3, and `deepseek-flash` alone and in
+  layer 3 on a seeded 2,000-message sample (149 of 166 right, 22 wrong at the default
+  `minConfidence`; USD 0.13). A sweep of every threshold on test is in `reports/clinc150.json`
+  and drawn in `reports/clinc150-tradeoff.svg`; CI reruns the local part and the chart.
+- `npm run cost` (`bench/cost.js`): dollars per 1,000 turns and p50/p95 latency per turn for
+  each configuration, for a main model's price, tokens and latency you give, and the main-call
+  price below which the model in layer 3 loses money.
+- `NOTICE` with the dataset's attribution.
+
 ### Changed
+
+- Layer 2 compares each message word with each phrase word once per message instead of once
+  per phrase: same scores, about 6 times faster with 1,500 phrases.
 
 - The README and `docs/DESIGN.md` no longer say the bench was never run against a model.
 - **Avoid words match exactly** (after normalization and synonyms). One-typo matching is now

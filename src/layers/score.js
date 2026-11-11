@@ -25,7 +25,7 @@ const RAW_PER_CONTENT = 4;
  */
 export function createScoreLayer({ answers, score }, vocabulary) {
   const { minScore, minMargin, maxTokens } = score;
-  const { contentOf, contentTokens, inQuery, vetoOf } = vocabulary;
+  const { contentOf, contentTokens, same, vetoOf } = vocabulary;
 
   const index = answers.map((a) => ({
     id: a.id,
@@ -37,6 +37,8 @@ export function createScoreLayer({ answers, score }, vocabulary) {
       })
       .filter((p) => p.tokens.length),
   }));
+  /** Every distinct phrase token, so a message is compared with each word once, not once per phrase. */
+  const phraseVocabulary = [...new Set(index.flatMap((a) => a.phrases.flatMap((p) => p.tokens)))];
 
   return {
     name: 'score',
@@ -52,13 +54,27 @@ export function createScoreLayer({ answers, score }, vocabulary) {
         return { outcome: 'skipped', reason: `${query.size} content words, above maxTokens ${maxTokens}` };
       }
 
+      // near.get(q): the phrase words that match query word q (equal, or one typo away when allowed).
+      /** @type {Map<string, Set<string>>} */
+      const near = new Map();
+      /** @type {Set<string>} */
+      const matched = new Set();
+      for (const q of query) {
+        const set = new Set();
+        for (const t of phraseVocabulary) if (same(q, t)) set.add(t);
+        near.set(q, set);
+        for (const t of set) matched.add(t);
+      }
+
       const ranked = [];
       for (const answer of index) {
         let best = { score: 0, phrase: '' };
         for (const phrase of answer.phrases) {
-          // Typo tolerance can match two phrase tokens to one query token; the smaller count keeps the score <= 1.
-          const phraseMatched = phrase.tokens.filter((t) => inQuery(query, t)).length;
-          const queryMatched = phraseMatched && [...query].filter((q) => inQuery(phrase.set, q)).length;
+          const phraseMatched = phrase.tokens.filter((t) => matched.has(t)).length;
+          if (!phraseMatched) continue;
+          // Typo tolerance can match two phrase words to one query word; the smaller count keeps the score <= 1.
+          let queryMatched = 0;
+          for (const q of query) if (phrase.tokens.some((t) => near.get(q)?.has(t))) queryMatched += 1;
           const shared = Math.min(phraseMatched, queryMatched);
           const s = (2 * shared) / (query.size + phrase.tokens.length);
           if (s > best.score) best = { score: s, phrase: phrase.text };

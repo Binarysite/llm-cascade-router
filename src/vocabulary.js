@@ -30,7 +30,7 @@ export function createVocabulary({ synonyms, stopwords, typoTolerance, answers =
   const fuzzy = (t) => t.length >= TYPO_MIN_LENGTH && !HAS_DIGIT.test(t);
   /** @param {string} a @param {string} b */
   const near = (a, b) => fuzzy(a) && fuzzy(b) && editDistance(a, b, 1) <= 1;
-  /** @param {string} a @param {string} b */
+  /** Two words match: equal, or one edit apart when typo tolerance is on. @param {string} a @param {string} b */
   const same = (a, b) => a === b || (typoTolerance && near(a, b));
   /** @param {string} t */
   const exactCanonical = (t) => canonicalOf.get(t) ?? t;
@@ -55,14 +55,6 @@ export function createVocabulary({ synonyms, stopwords, typoTolerance, answers =
 
   /** @param {string} text @returns {Set<string>} */
   const contentTokens = (text) => contentOf(tokenize(text));
-
-  /** @param {Set<string>} query @param {string} token */
-  const inQuery = (query, token) => {
-    if (query.has(token)) return true;
-    if (!typoTolerance) return false;
-    for (const q of query) if (same(q, token)) return true;
-    return false;
-  };
 
   /**
    * The words an avoid check compares against: every token, synonyms applied
@@ -99,5 +91,5 @@ export function createVocabulary({ synonyms, stopwords, typoTolerance, answers =
     return null;
   };
 
-  return { contentOf, contentTokens, inQuery, avoidWords, vetoOf };
+  return { contentOf, contentTokens, same, avoidWords, vetoOf };
 }

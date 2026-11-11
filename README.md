@@ -220,6 +220,78 @@ total cost USD 0.003586; prices: https://api-docs.deepseek.com/quick_start/prici
   written inside the bench, kept in `reports/archive/`) gave the same held-out
   result, 11 of 24 with the same 2 wrong.
 
+## A public benchmark: CLINC150
+
+The sticker-shop banks are mine. [CLINC150](https://github.com/clinc/oos-eval)
+(Larson et al., 2019, CC BY 3.0) is not: 150 intents in 10 domains plus
+out-of-scope queries, written by crowd workers. `npm run clinc:fetch` downloads
+it at a pinned commit and checks its SHA-256; `npm run clinc` runs it. The 15
+`banking` intents get a fixed answer each, with their train utterances as
+phrases; the other 135 intents and every out-of-scope query must reach the LLM.
+Setup and history: [bench/clinc150/README.md](bench/clinc150/README.md).
+
+<!-- output: bench/clinc150/show.js -->
+```text
+CLINC150 test split, 5500 messages: 450 banking questions with a fixed answer,
+5050 that must reach the LLM (other domains and out-of-scope). Train 15100, val 3100.
+Thresholds chosen on val, the most fixed answers with precision >= 0.98: minScore 0.85, minMargin 0.15;
+TF-IDF similarity 1, alone and in layer 3. Test scored once at those thresholds.
+
+                                                  wrong  (intent / must-escalate)    right     precision, 95% Wilson  to LLM
+LLM on every message                                  0                   (0 / 0)    0/450                         -  100.0%
+layers 1-2, then LLM                                  2                   (1 / 1)  110/450    98.2% (93.7% to 99.5%)   98.0%
+TF-IDF nearest neighbour alone, then LLM              0                   (0 / 0)   60/450  100.0% (94.0% to 100.0%)   98.9%
+cascade: layers 1-2, TF-IDF in layer 3, then LLM      2                   (1 / 1)  124/450    98.4% (94.4% to 99.6%)   97.7%
+
+deepseek-flash in layer 3, 2026-11-11, on a seeded sample of 2000 test messages (166 answerable);
+minConfidence 0.8 (the default, not tuned). 2000 calls, 0 errors, 0 unknown ids.
+
+                                                 wrong  (intent / must-escalate)    right   precision, 95% Wilson  to LLM
+layers 1-2, then LLM                                 1                   (1 / 0)   45/166  97.8% (88.7% to 99.6%)   97.7%
+model on every message, then LLM                    21                  (4 / 17)  149/166  87.6% (81.9% to 91.8%)   91.5%
+cascade: layers 1-2, model in layer 3, then LLM     22                  (5 / 17)  149/166  87.1% (81.3% to 91.3%)   91.4%
+
+model call latency p50 1099 ms, p95 1427 ms, max 1865 ms; cost USD 0.1310 (peak price, an upper bound)
+right fixed answers, cascade with model vs layers 1-2: 104 only the cascade, 0 only layers 1-2, McNemar exact p < 0.0001
+```
+
+![Trade-off on CLINC150: answerable messages answered right against wrong fixed answers per 1,000 turns, one line per configuration](reports/clinc150-tradeoff.svg)
+
+- **Layers 1 and 2 answer about a quarter of the answerable questions at
+  98% precision**: 110 of 450, 2 wrong. Since only 450 of 5,500 test messages
+  have a fixed answer, 98% of turns still reach the LLM: the saving is bounded
+  by how much of your traffic is repeat questions.
+- **A local TF-IDF nearest neighbour in layer 3 adds a little** (124 right,
+  2 wrong); it was trained on every train utterance, banking or not.
+- **A model in layer 3 finds most answerable questions and pays for it in
+  wrong answers.** At the default `minConfidence` of 0.8, untuned, it answered
+  149 of 166 answerable messages in the sample right and 22 wrong, 17 of them
+  messages that had to reach the LLM. The curve shows a stricter threshold
+  trading coverage for wrong answers; that threshold would have to be chosen on
+  validation, which this run did not pay for.
+
+`npm run cost` turns the model run into dollars and latency for a main model
+you describe. Here the main model is priced like `deepseek-v4-pro` at peak
+(USD 1.32 / 3.96 per million tokens, the same pricing page), with a 2,000-token
+prompt, 300 output tokens and 3 s per call. Those four are assumptions; the
+classifier's cost and latency are measured:
+
+<!-- output: bench/cost.js --main-in 1.32 --main-out 3.96 --prompt-tokens 2000 --output-tokens 300 --main-ms 3000 -->
+```text
+main model call: USD 0.00383 (2000 in, 300 out at 1.32 / 3.96 per M), 3000 ms; classifier call: USD 0.000066 measured (deepseek-flash)
+traffic with a fixed answer: 8.3% (sample: 166/2000); layer 2 at minScore 0.85, minMargin 0.15 (chosen on val)
+
+configuration                          USD per 1k turns  main calls  classifier calls  p50 ms  p95 ms
+LLM on every message                              3.828        1000                 0    3000    3000
+layers 1-2, then LLM                              3.740         977                 0    3000    3000
+model classifier on every message                 3.568         915              1000    4077    4415
+cascade: layers 1-2, model in layer 3             3.565         914               977    4076    4414
+
+Adding the model in layer 3 to layers 1-2 saves 62 main calls per 1k turns for 977 classifier calls.
+It loses money when one main call costs less than USD 0.00102 (here: USD 0.00383, so it saves money).
+Wrong fixed answers are not priced here; read them in the CLINC150 table.
+```
+
 ## Measure your own messages
 
 The method carries over, the numbers do not: label your real messages, keep some
