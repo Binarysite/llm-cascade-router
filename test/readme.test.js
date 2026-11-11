@@ -51,3 +51,13 @@ for (const doc of DOCS) {
     });
   }
 }
+
+test('the README headline tests the real model against the mock on right answers, not on share', async () => {
+  const real = JSON.parse(await readFile(new URL('../reports/real-deepseek.json', import.meta.url), 'utf8'))
+    .banks.heldOut.realModel.versusKeywordMock;
+  const { start, end } = findBlocks(texts['README.md']).find((b) => b.command === 'scripts/headline.mjs');
+  const block = texts['README.md'].split('\n').slice(start, end).join('\n');
+  assert.match(block, new RegExp(`p = ${real.right.mcnemarP} on right answers`));
+  assert.match(block, /3 more right, 1 more wrong, none the other way/);
+  assert.doesNotMatch(block, new RegExp(`p = ${real.answeredWithoutMainLlm.mcnemarP}\\b`));
+});

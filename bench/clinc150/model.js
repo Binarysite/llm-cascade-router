@@ -9,10 +9,11 @@
 // Writes reports/clinc150-deepseek.json. The key is never printed or written.
 import { readFile, writeFile } from 'node:fs/promises';
 import { createRouter } from '../../src/index.js';
-import { measure, latencySummary, mcnemarExact } from '../../src/eval.js';
+import { measure, latencySummary } from '../../src/eval.js';
 import { createOpenAiCompatibleClassifier } from '../../src/adapters/openai-compatible.js';
 import { loadClinc, buildConfig } from './setup.js';
 import { score, THRESHOLDS } from './evaluate.js';
+import { modelDecision as decide, comparisons } from './paired.js';
 import { PROVIDERS, costUsd } from '../providers.js';
 import { safeErrorLabel } from '../safe-error.js';
 
@@ -92,10 +93,9 @@ if (stopped) {
   process.exit(1);
 }
 
-/** The router's layer 3 rule applied to a recorded reply. */
+/** The router's layer 3 rule applied to a recorded reply (shared with paired.js). */
 const modelDecision = (/** @type {typeof replies[number]} */ r, /** @type {number} */ min) => (
-  typeof r.choice === 'string' && ids.has(r.choice) && typeof r.confidence === 'number' && r.confidence >= min
-    ? r.choice : 'llm');
+  decide(r.choice, r.confidence, min, ids));
 
 // The real router: layers 1 and 2, then a layer 3 that replays the recorded reply.
 // Messages are routed in sample order, so repeated texts take their recorded replies in order.
@@ -126,12 +126,6 @@ const offlineCascade = layers12.map((d, i) => (d === 'llm' ? alone[i] : d));
 const diff = offlineCascade.filter((d, i) => d !== cascade[i]).length;
 if (diff) throw new Error(`the cascade differs from the offline rule on ${diff} messages`);
 
-const rightOf = (/** @type {string[]} */ d) => d.map((x, i) => x !== 'llm' && x === sample[i].expect);
-const paired = (/** @type {boolean[]} */ x, /** @type {boolean[]} */ y) => {
-  const b = x.filter((v, i) => v && !y[i]).length;
-  const c = x.filter((v, i) => !v && y[i]).length;
-  return { onlyFirst: b, onlySecond: c, mcnemarP: Number(mcnemarExact(b, c).toFixed(4)) };
-};
 const pick = ({ answered, wrong, coverageOfAnswerable, wrongPer1000Turns, precision }) => (
   { answered, wrong, coverageOfAnswerable, wrongPer1000Turns, precision });
 const tokens = spec.tokens(usages);
@@ -158,10 +152,8 @@ const report = {
     'model on every message, then LLM': score(sample, alone),
     'cascade: layers 1-2, model in layer 3, then LLM': score(sample, cascade),
   },
-  pairedRight: {
-    'cascade with model vs layers 1-2': paired(rightOf(cascade), rightOf(layers12)),
-    'cascade with model vs model alone': paired(rightOf(cascade), rightOf(alone)),
-  },
+  // Paired on the same messages; bench/clinc150/paired.js recomputes this from the rows.
+  paired: comparisons(sample, { layers12, alone, cascade }),
   sweep: {
     modelAlone: THRESHOLDS.map((m) => ({
       minConfidence: m, ...pick(score(sample, replies.map((r) => modelDecision(r, m)))),

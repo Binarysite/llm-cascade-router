@@ -14,6 +14,24 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `wilson95(0, 0)` returns `[0, 1]` (no trials says nothing) instead of `[0, 0]`, and a count
   outside `0 <= k <= n` throws `RangeError`. The only report entry this moves is the precision
   interval of "LLM on every message" in `reports/clinc150.json`, which answers nothing.
+- **The README headline tested the wrong metric.** It gave McNemar p = 0.125 for "answered
+  without the main LLM", where one of the 4 messages the model moved off the LLM is a wrong
+  fixed answer. On right answers it is 3 more right, 1 more wrong, none the other way: not
+  significant (p = 0.25). `scripts/headline.mjs` now prints that from the report and the
+  local mock run, and `bench/show-real.js` shows the right-answer test.
+- **CLINC150: a comparison that could not fail is gone.** "Cascade vs layers 1-2" on right
+  answers (104 vs 0, p < 0.0001) holds by construction, since the cascade keeps every answer
+  layers 1-2 give. The report's `pairedRight` is replaced by `paired`: the cascade against the
+  model alone on right (1 vs 1, p = 1) and on wrong answers (1 vs 0, p = 1), and the 46 of
+  2,000 model calls layers 1-2 skip. `bench/clinc150/paired.js` recomputes it from the
+  committed per-message rows, with no model call, and checks the rows reproduce the results.
+- CLINC150 output shows the validation precision and its Wilson interval next to test: the
+  selection rule reads a point estimate on 71 answered val messages for layers 1-2. The rule
+  itself is unchanged.
+- "Test scored once" is corrected to "scored at the validation-chosen thresholds; re-run once
+  after a floating-point fix that did not move them", as the History in
+  `bench/clinc150/README.md` says.
+- The README says the CLINC150 model run passed custom `instructions` to the shipped adapter.
 
 ### Security
 
@@ -59,8 +77,9 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **A public out-of-scope benchmark on CLINC150** (`bench/clinc150/`, CC BY 3.0, fetched at a
   pinned commit with SHA-256 checks, not committed). The 15 banking intents get fixed answers;
   the other 135 intents and out-of-scope queries must reach the LLM. Thresholds are chosen on
-  validation, test is scored once: layers 1-2 answer 110 of 450 answerable test questions
-  right with 2 wrong (precision 98.2%, 95% interval 93.7% to 99.5%). Baselines on the same
+  validation and test is scored at the validation-chosen thresholds (re-run once after a
+  floating-point fix that did not move them; see History in `bench/clinc150/README.md`):
+  layers 1-2 answer 110 of 450 answerable test questions right with 2 wrong (precision 98.2%, 95% interval 93.7% to 99.5%). Baselines on the same
   split: a TF-IDF nearest neighbour alone and in layer 3, and `deepseek-flash` alone and in
   layer 3 on a seeded 2,000-message sample (149 of 166 right, 22 wrong at the default
   `minConfidence`; USD 0.13). A sweep of every threshold on test is in `reports/clinc150.json`

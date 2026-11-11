@@ -7,6 +7,8 @@ import { promisify } from 'node:util';
 import { score, choose } from '../bench/clinc150/evaluate.js';
 import { createNearestNeighbour } from '../bench/clinc150/tfidf.js';
 import { buildConfig } from '../bench/clinc150/setup.js';
+import { modelDecision, decisionsFromRows, comparisons, withPaired } from '../bench/clinc150/paired.js';
+import { readFile } from 'node:fs/promises';
 import { createRouter } from '../src/index.js';
 
 const run = promisify(execFile);
@@ -64,6 +66,40 @@ test('buildConfig drops an utterance that two intents share, so setup accepts it
   const config = buildConfig(train, ['balance', 'transactions'], { minScore: 0.5, minMargin: 0.1 });
   assert.deepEqual(config.answers.map((a) => a.phrases), [[], ['recent transactions']]);
   assert.throws(() => createRouter(config), /answers\[0\]\.phrases/, 'an intent left with no phrase is a setup error');
+});
+
+test('paired.js: layer 3 rule, decisions from rows, and comparisons on right and on wrong', () => {
+  assert.equal(modelDecision('balance', 0.8, 0.8), 'balance');
+  assert.equal(modelDecision('balance', 0.79, 0.8), 'llm');
+  assert.equal(modelDecision('made_up', 0.99, 0.8), 'llm');
+  assert.equal(modelDecision(null, 0, 0.8), 'llm');
+  const rows = [
+    [0, 'balance', 'balance', 'transfer', 0.9, 10],
+    [1, 'transfer', 'llm', 'transfer', 0.9, 10],
+    [2, 'llm', 'llm', 'balance', 0.9, 10],
+    [3, 'balance', 'transfer', 'balance', 0.9, 10],
+    [4, 'llm', 'llm', null, 0, 10, 'timeout'],
+  ];
+  const d = decisionsFromRows(rows, 0.8);
+  assert.deepEqual(d.alone, ['transfer', 'transfer', 'balance', 'balance', 'llm']);
+  assert.deepEqual(d.cascade, ['balance', 'transfer', 'balance', 'transfer', 'llm']);
+  assert.deepEqual(comparisons(d.expects, d), {
+    'cascade with model vs model alone': {
+      right: { onlyFirst: 1, onlySecond: 1, mcnemarP: 1 },
+      wrong: { onlyFirst: 1, onlySecond: 1, mcnemarP: 1 },
+    },
+    modelCallsSkippedByLayers12: 2,
+  });
+});
+
+test('the committed model report: paired comes from its rows, and no comparison true by construction', async () => {
+  const text = await readFile(new URL('../reports/clinc150-deepseek.json', import.meta.url), 'utf8');
+  const report = JSON.parse(text);
+  assert.equal(`${JSON.stringify(withPaired(report), null, 1)}\n`, text, 'run node bench/clinc150/paired.js');
+  assert.ok(!('pairedRight' in report));
+  assert.deepEqual(Object.keys(report.paired), ['cascade with model vs model alone', 'modelCallsSkippedByLayers12']);
+  const broken = { ...report, results: { ...report.results, 'layers 1-2, then LLM': {} } };
+  assert.throws(() => withPaired(broken), /do not reproduce/);
 });
 
 test('show.js and cost.js read the committed reports without the dataset', async () => {

@@ -99,17 +99,20 @@
    "escalationRate": 0.914
   }
  },
- "pairedRight": {
-  "cascade with model vs layers 1-2": {
-   "onlyFirst": 104,
-   "onlySecond": 0,
-   "mcnemarP": 0
-  },
+ "paired": {
   "cascade with model vs model alone": {
-   "onlyFirst": 1,
-   "onlySecond": 1,
-   "mcnemarP": 1
-  }
+   "right": {
+    "onlyFirst": 1,
+    "onlySecond": 1,
+    "mcnemarP": 1
+   },
+   "wrong": {
+    "onlyFirst": 1,
+    "onlySecond": 0,
+    "mcnemarP": 1
+   }
+  },
+  "modelCallsSkippedByLayers12": 46
  },
  "sweep": {
   "modelAlone": [

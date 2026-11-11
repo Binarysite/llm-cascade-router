@@ -80,11 +80,11 @@ deepseek-flash in layer 3 (served: deepseek-flash), 2026-11-11, reports/real-dee
 wrong fixed answers         0 of 32                   2 of 11
   precision, 95% Wilson     100.0% (89.3 to 100.0)    81.8% (52.3 to 94.9)
 right fixed answers         32                        9
+  vs mock (only one right)  1 / 0, McNemar p = 1      3 / 0, McNemar p = 0.25
 escalated (cost a call)     1                         1
 answered without the LLM    32/49 (65.3%)             11/24 (45.8%)
   with the keyword mock     31/49 (63.3%)             7/24 (29.2%)
   with no classifier        25/49 (51.0%)             7/24 (29.2%)
-  McNemar p, model vs mock  1                         0.125
 classifier calls            24                        17
   answers right / wrong     7 / 0                     3 / 1
   unknown ids / errors      0 / 0                     0 / 0
@@ -99,8 +99,10 @@ total cost USD 0.003586; prices: https://api-docs.deepseek.com/quick_start/prici
 - **Held-out, the model answered 4 messages the mock could not: 3 right, 1
   wrong.** The wrong one is "my friend said your shipping is slow, is that true
   for europe?", sent to shipping time; the label is international.
-- **Not significant**: 4 messages moved off the LLM and none the other way,
-  exact McNemar p = 0.125.
+- **Not significant**: on right answers, 3 only with the model and none only
+  with the mock, exact McNemar p = 0.25; wrong fixed answers went from 1 to 2.
+  Counting every message moved off the LLM (4, p = 0.125) would score the wrong
+  one as a gain.
 - **About 1.1 s per classifier call**, added to every turn that still reaches
   the LLM. The example's 250 ms timeout would cut every call, so the run uses
   30 s.
@@ -123,13 +125,15 @@ and [reports/clinc150-deepseek.json](../reports/clinc150-deepseek.json).
 CLINC150 test split, 5500 messages: 450 banking questions with a fixed answer,
 5050 that must reach the LLM (other domains and out-of-scope). Train 15100, val 3100.
 Thresholds chosen on val, the most fixed answers with precision >= 0.98: minScore 0.85, minMargin 0.15;
-TF-IDF similarity 1, alone and in layer 3. Test scored once at those thresholds.
+TF-IDF similarity 1, alone and in layer 3. The rule reads the point estimate on few answered val messages
+(71 for layers 1-2), so the val precision and its interval are in the last column. Test scored at those
+thresholds; re-run once after a floating-point fix that did not move them (see History in bench/clinc150/README.md).
 
-                                                  wrong  (intent / must-escalate)    right     precision, 95% Wilson  to LLM
-LLM on every message                                  0                   (0 / 0)    0/450                         -  100.0%
-layers 1-2, then LLM                                  2                   (1 / 1)  110/450    98.2% (93.7% to 99.5%)   98.0%
-TF-IDF nearest neighbour alone, then LLM              0                   (0 / 0)   60/450  100.0% (94.0% to 100.0%)   98.9%
-cascade: layers 1-2, TF-IDF in layer 3, then LLM      2                   (1 / 1)  124/450    98.4% (94.4% to 99.6%)   97.7%
+                                                  wrong  (intent / must-escalate)    right     precision, 95% Wilson  to LLM    val precision, right/answered
+LLM on every message                                  0                   (0 / 0)    0/450                         -  100.0%                                -
+layers 1-2, then LLM                                  2                   (1 / 1)  110/450    98.2% (93.7% to 99.5%)   98.0%    98.6% (92.4% to 99.8%), 70/71
+TF-IDF nearest neighbour alone, then LLM              0                   (0 / 0)   60/450  100.0% (94.0% to 100.0%)   98.9%  100.0% (87.9% to 100.0%), 28/28
+cascade: layers 1-2, TF-IDF in layer 3, then LLM      2                   (1 / 1)  124/450    98.4% (94.4% to 99.6%)   97.7%    98.6% (92.5% to 99.8%), 71/72
 
 deepseek-flash in layer 3, 2026-11-11, on a seeded sample of 2000 test messages (166 answerable);
 minConfidence 0.8 (the default, not tuned). 2000 calls, 0 errors, 0 unknown ids.
@@ -140,13 +144,25 @@ model on every message, then LLM                    21                  (4 / 17)
 cascade: layers 1-2, model in layer 3, then LLM     22                  (5 / 17)  149/166  87.1% (81.3% to 91.3%)   91.4%
 
 model call latency p50 1099 ms, p95 1427 ms, max 1865 ms; cost USD 0.1310 (peak price, an upper bound)
-right fixed answers, cascade with model vs layers 1-2: 104 only the cascade, 0 only layers 1-2, McNemar exact p < 0.0001
+paired on the same 2000 messages, cascade with the model vs the model alone:
+  right fixed answers: 1 only the cascade, 1 only the model alone, McNemar exact p = 1
+  wrong fixed answers: 1 only the cascade, 0 only the model alone, McNemar exact p = 1
+layers 1-2 add no right answers once the model is in layer 3 (149 vs 149) and 1 more wrong (22 vs 21);
+they skip 46 of 2000 model calls (2.3%): cost and latency only.
 ```
 
 - **Wrong answers split** into a wrong banking intent and a must-escalate
   message given a fixed answer; the second kind dominates the model's errors.
-- **The McNemar test** compares right fixed answers per message between the
-  cascade with the model and layers 1-2 on the same sample.
+- **The paired tests** compare the cascade with the model against the model
+  alone on the same messages, once on right and once on wrong fixed answers.
+  The cascade against layers 1-2 alone is not tested: the cascade keeps every
+  answer layers 1-2 give, so that comparison favours it by construction.
+  `node bench/clinc150/paired.js --check` recomputes them from the per-message
+  rows in the report.
+- **The val column** is the validation result the thresholds were chosen on.
+  The rule reads its point estimate (>= 0.98) on 71 answered messages for
+  layers 1-2; the rule was fixed before the runs and is not changed after
+  seeing test.
 
 ## Cost per 1,000 turns
 
