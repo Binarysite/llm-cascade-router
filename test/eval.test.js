@@ -113,3 +113,9 @@ test('wilson95 and the mock LLM', async () => {
   assert.equal(await llm({ message: 'hi', signal: AbortSignal.timeout(1000) }), '[model reply to: hi]');
   assert.equal(llm.calls(), 1);
 });
+
+test('mcnemarExact rejects counts that are not non-negative integers', () => {
+  for (const [b, c] of [[-1, 2], [1, -2], [1.5, 2], [2, 0.5], [NaN, 1], [1, NaN], [Infinity, 1], [1, undefined]]) {
+    assert.throws(() => mcnemarExact(b, /** @type {number} */ (c)), RangeError, `${b}, ${c}`);
+  }
+});
