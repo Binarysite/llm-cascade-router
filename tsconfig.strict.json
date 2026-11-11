@@ -8,5 +8,5 @@
     "skipLibCheck": false,
     "types": ["node"]
   },
-  "files": ["index.d.ts", "claude.d.ts", "eval.d.ts"]
+  "files": ["index.d.ts", "claude.d.ts", "eval.d.ts", "openai-compatible.d.ts"]
 }

@@ -8,10 +8,19 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- `npm run bench:real` (`bench/real.js`): both banks with a real model in layer 3, with
-  latency, token usage, cost and the break-even in dollars. First run, `deepseek-chat`:
-  in-sample 31/48 with 0 wrong, held-out 11/24 with 2 wrong, USD 0.0033 in total
-  (`reports/real-deepseek.json`). No Claude run yet.
+- **`llm-cascade-router/openai-compatible`**: `createOpenAiCompatibleClassifier` and
+  `createOpenAiCompatibleLlm` for any Chat Completions endpoint (OpenAI, DeepSeek, a local
+  server), over fetch, with `baseUrl` and `extraBody`. The classifier returns a model-invented
+  id as given, so the router records it as an unknown choice instead of "no answer".
+- `npm run bench:real` (`bench/real.js`): both banks with a real model in layer 3 through the
+  shipped adapters, with right/wrong/escalated, latency (p95 only from 20 calls, and the time
+  added on escalated turns), tokens, cost from returned usage, a `--max-usd` cap, the McNemar
+  p-value against the keyword mock, and a check that the report does not contain the key.
+  Run on 2026-11-11 with `deepseek-flash`: in-sample 32/49 answered without the main LLM, 0
+  wrong; held-out 11/24, 2 wrong of 11 fixed answers, McNemar p = 0.125 against the mock;
+  USD 0.0036 (`reports/real-deepseek.json`). `bench/show-real.js` prints it as a table. The
+  October run with `deepseek-chat`, made with a client written inside the bench, is kept in
+  `reports/archive/`. No Claude run: there is no Anthropic key.
 - **`llm-cascade-router/eval`** (`src/eval.js`, typed in `eval.d.ts`): `measure`, `format`,
   `createMockLlm`, `wilson95`, `mcnemarExact` and `latencySummary`. The bench and the CLI
   import it, so the library no longer imports the sticker-shop example. `measure` takes a
@@ -54,6 +63,7 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Security
 
 - Provider error bodies are no longer copied into thrown errors (they can echo a masked key).
+- A Claude classifier reply that is not JSON throws an error that does not quote the reply.
 - `bench/real.js` no longer stores provider error bodies in the report (they can echo a masked key).
 
 ## [0.1.1] - 2026-10-10

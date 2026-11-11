@@ -49,7 +49,9 @@ confidence in 0..1. A `usage` field, if present, is copied to the trace step
 whenever the classifier returns, so a logger can count what layer 3 costs. The
 bundled Claude adapter constrains the reply with a JSON schema whose `choice`
 enum is the answer ids plus a no-answer value (`"none"`, or `"_none"` if an id
-is `none`).
+is `none`). The OpenAI-compatible adapter asks for a JSON object and returns
+the choice as the model gave it: mapping an invented id to "no answer" would
+hide a model error that a bench should count.
 
 **Timeouts that cancel.** Layers 3 and 4 get an `AbortSignal` that fires on
 their timeout or when the caller aborts. An implementation that ignores it is
@@ -129,9 +131,10 @@ What the final LLM says is out of scope.
   tools; cap long messages before calling `route`.
 - **No safety layer and no semantic cache.** Put injection and personal-data
   checks before the router; reusing past LLM replies is a different trade-off.
-- **The benchmark is small and self-made**: 48 in-sample messages and 24
+- **The benchmark is small and self-made**: 49 in-sample messages and 24
   held-out ones, all invented by one person. Layer 3 has been run with
-  `deepseek-chat` once (README, "With a real model in layer 3") and layer 4 never.
+  `deepseek-flash` through the OpenAI-compatible adapter (README, "With a real
+  model in layer 3"); the Claude adapters and layer 4 never against a live API.
 - **A timed-out call may still be billed** by the provider.
 
 ## Source layout
@@ -143,7 +146,7 @@ What the final LLM says is out of scope.
 | `src/normalize.js`, `src/vocabulary.js` | Tokens, edit distance, synonyms, avoid check |
 | `src/timeout.js` | Per-layer deadline linked to the caller's signal |
 | `src/layers/` | One file per layer |
-| `src/adapters/claude.js` | Optional Claude adapters |
+| `src/adapters/` | Optional Claude and OpenAI-compatible adapters |
 | `examples/sticker-shop/` | The invented shop and its mocks |
 | `src/eval.js` | `llm-cascade-router/eval`: `measure`, `format`, the mock LLM, Wilson and McNemar |
 | `bench/` | The in-sample and held-out banks and the runners |

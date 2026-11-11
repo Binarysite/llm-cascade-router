@@ -8,26 +8,10 @@
  * (a Claude Haiku model is the natural fit for the classifier).
  */
 
-import { historyOf } from './shared.js';
+import { historyOf, errorIdentifier, parseClassifierReply, noAnswerValue } from './shared.js';
 
 const API_URL = 'https://api.anthropic.com/v1/messages';
 const API_VERSION = '2023-06-01';
-
-/**
- * The `error.type` of a JSON error body (for example "rate_limit_error"), or
- * undefined. Anything else in the body is dropped.
- * @param {Response} res
- * @returns {Promise<string | undefined>}
- */
-async function errorType(res) {
-  let type;
-  try {
-    type = JSON.parse(await res.text())?.error?.type;
-  } catch {
-    return undefined;
-  }
-  return typeof type === 'string' && /^[a-z0-9_]{1,60}$/.test(type) ? type : undefined;
-}
 
 /**
  * @param {{ apiKey?: string, model?: string, fetch?: typeof fetch, url?: string }} options
@@ -56,7 +40,7 @@ function client({ apiKey, model, fetch: f, url }, who) {
     if (!res.ok) {
       // The body is never copied into the message: a provider can echo a masked key in it.
       // Only the standard error.type survives, and only when it is a plain identifier.
-      const type = await errorType(res);
+      const type = await errorIdentifier(res);
       throw Object.assign(new Error(`${who}: HTTP ${res.status}${type ? `: ${type}` : ''}`), { status: res.status });
     }
     const data = await res.json();
@@ -125,7 +109,7 @@ export function createClaudeClassifier({ instructions, effort = null, maxTokens 
    */
   return async function classify({ message, choices, signal }) {
     const ids = choices.map((c) => c.id);
-    const none = ids.includes('none') ? '_none' : 'none';
+    const none = noAnswerValue(ids);
     const schema = {
       type: 'object',
       properties: { choice: { type: 'string', enum: [...ids, none] }, confidence: { type: 'number' } },
@@ -140,7 +124,9 @@ export function createClaudeClassifier({ instructions, effort = null, maxTokens 
       output_config: { ...(effort ? { effort } : {}), format: { type: 'json_schema', schema } },
       messages: [{ role: 'user', content }],
     }, signal);
-    const out = JSON.parse(text);
-    return { choice: out.choice === none ? null : out.choice, confidence: out.confidence, usage };
+    const out = parseClassifierReply(text, 'createClaudeClassifier');
+    // The router checks choice and confidence at runtime: an unknown id or a bad confidence is a miss or an error.
+    const choice = /** @type {string | null} */ (out.choice === none ? null : out.choice);
+    return { choice, confidence: /** @type {number} */ (out.confidence), usage };
   };
 }

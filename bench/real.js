@@ -1,88 +1,75 @@
 #!/usr/bin/env node
-// Run both banks with a real model in layer 3 and write a report with latency,
-// token usage and cost. The main LLM stays the counting mock, so the cost here
-// is the classifier's alone. The vocabulary and the held-out bank are not touched.
+// Run both sticker-shop banks with a real model in layer 3, through the shipped
+// adapters, and write a report with right/wrong/escalated, latency, tokens and
+// cost. The main LLM stays the counting mock, so the cost is the classifier's.
 //
-//   ANTHROPIC_API_KEY=... node bench/real.js --provider anthropic --model claude-haiku-5-5
-//   DEEPSEEK_API_KEY=... node bench/real.js --provider deepseek  --model deepseek-chat
+//   DEEPSEEK_API_KEY=... node bench/real.js --provider deepseek --model deepseek-flash
+//   ANTHROPIC_API_KEY=... node bench/real.js --provider anthropic --model <a Claude Haiku id>
 //
-// The key is read from the environment and never printed or written.
+// The key is read from the environment, sent only to the provider, and never
+// printed or written: the report is checked for it before it is kept.
+// --max-usd (default 0.25) stops the run once the cost computed from returned usage passes it.
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { measure, format } from '../src/eval.js';
-import { createKeywordClassifier } from '../examples/sticker-shop/classifier.js';
-import { safeErrorLabel } from './safe-error.js';
+import { measure, format, mcnemarExact, latencySummary } from '../src/eval.js';
+import { createOpenAiCompatibleClassifier } from '../src/adapters/openai-compatible.js';
 import { createClaudeClassifier } from '../src/adapters/claude.js';
 import { createStickerShopRouter } from '../examples/sticker-shop/router.js';
+import { createKeywordClassifier } from '../examples/sticker-shop/classifier.js';
+import { safeErrorLabel } from './safe-error.js';
+import { PROVIDERS, costUsd } from './providers.js';
 
-const arg = (name, dflt) => {
+const arg = (/** @type {string} */ name, /** @type {string} */ dflt) => {
   const i = process.argv.indexOf(`--${name}`);
   return i > 0 ? process.argv[i + 1] : dflt;
 };
-const provider = arg('provider', 'anthropic');
-const model = arg('model', provider === 'deepseek' ? 'deepseek-chat' : 'claude-haiku-5-5');
+const provider = arg('provider', 'deepseek');
+const spec = PROVIDERS[provider];
+if (!spec) throw new Error(`unknown --provider ${provider}; one of ${Object.keys(PROVIDERS).join(', ')}`);
+const model = arg('model', spec.defaultModel);
 const outFile = arg('out', `reports/real-${provider}.json`);
 const timeoutMs = Number(arg('timeout', '30000'));
+const maxUsd = Number(arg('max-usd', '0.25'));
+const key = process.env[spec.keyEnv];
+if (!key) throw new Error(`set ${spec.keyEnv}`);
 
-// USD per million tokens. Anthropic: published price of Claude Haiku 5.5 for prompts
-// up to 100K tokens. DeepSeek: the deepseek-flash row of the public pricing page at peak
-// hours (the highest column), used as an upper bound because the page does not list
-// the id deepseek-chat.
-const PRICES = {
-  anthropic: { input: 0.10, output: 0.50, note: 'Claude Haiku 5.5, prompts up to 100K tokens' },
-  deepseek: { input: 0.30, output: 1.20, cacheHit: 0.006,
-    note: 'deepseek-flash peak-hours row, upper bound; the pricing page does not list deepseek-chat' },
-}[provider];
+/** Models the endpoint said it served, read from each response. */
+const served = new Set();
+/** @type {typeof fetch} */
+const recordingFetch = async (url, init) => {
+  const res = await fetch(url, init);
+  if (res.ok) res.clone().json().then((d) => { if (typeof d?.model === 'string') served.add(d.model); }, () => {});
+  return res;
+};
 
-function makeDeepseek() {
-  const key = process.env.DEEPSEEK_API_KEY;
-  if (!key) throw new Error('set DEEPSEEK_API_KEY');
-  const system = 'You route customer messages to prepared answers. Pick the one answer that fully answers the '
-    + 'message, or "none" if no single answer does, if the message is about a specific order or account, or if '
-    + 'it asks several things at once. Reply with JSON only: {"choice": "<id or none>", "confidence": <0..1>}. '
-    + 'confidence is your probability that the chosen answer is right.';
-  return async function classify({ message, choices, signal }) {
-    const list = choices.map((c) => `- ${c.id}: ${c.description}`).join('\n');
-    const user = `Answers:\n${list}\n\nMessage:\n${message}`;
-    const res = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
-      body: JSON.stringify({
-        model, max_tokens: 200, temperature: 0, response_format: { type: 'json_object' },
-        messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
-      }),
-      signal,
-    });
-    if (!res.ok) {
-      // The body is never read: it can echo a masked key, and nothing from it may reach the report.
-      throw new Error(`deepseek HTTP ${res.status}`);
-    }
-    const data = await res.json();
-    const out = JSON.parse(data.choices[0].message.content);
-    const ids = choices.map((c) => c.id);
-    const u = data.usage ?? {};
-    return {
-      choice: ids.includes(out.choice) ? out.choice : null,
-      confidence: Number(out.confidence) || 0,
-      usage: { input_tokens: u.prompt_tokens ?? 0, output_tokens: u.completion_tokens ?? 0,
-        cache_read_input_tokens: u.prompt_cache_hit_tokens ?? 0 },
-    };
-  };
-}
+const base = spec.kind === 'anthropic'
+  ? createClaudeClassifier({ apiKey: key, model, maxTokens: 1024, fetch: recordingFetch })
+  : createOpenAiCompatibleClassifier({
+    apiKey: key, model, baseUrl: spec.baseUrl, extraBody: spec.extraBody, fetch: recordingFetch,
+  });
 
-const base = provider === 'deepseek'
-  ? makeDeepseek()
-  : createClaudeClassifier({ model, effort: 'low', maxTokens: 2048 });
+const ledger = { usd: 0, stopped: false };
+/** One bank's classifier calls. */
+const fresh = () => ({
+  calls: 0,
+  errors: 0,
+  errorSamples: /** @type {string[]} */ ([]),
+  usage: /** @type {any[]} */ ([]),
+  latencies: /** @type {number[]} */ ([]),
+  byText: new Map(),
+});
+let stats = fresh();
 
-const stats = { calls: 0, errors: 0, errorSamples: [], input: 0, output: 0, cacheRead: 0, latencies: [] };
+/** @type {import('../index.js').Classify} */
 const timed = async (input) => {
+  if (ledger.stopped) throw new Error('budget reached');
   const t0 = performance.now();
   stats.calls += 1;
   try {
     const r = await base(input);
-    const u = /** @type {Record<string, number>} */ (r.usage ?? {});
-    stats.input += (u.input_tokens ?? 0);
-    stats.output += (u.output_tokens ?? 0);
-    stats.cacheRead += (u.cache_read_input_tokens ?? 0);
+    stats.usage.push(r.usage);
+    ledger.usd += costUsd(spec, [r.usage]);
+    if (ledger.usd > maxUsd) ledger.stopped = true;
+    stats.byText.set(input.message, { choice: r.choice, confidence: r.confidence });
     return r;
   } catch (e) {
     stats.errors += 1;
@@ -93,52 +80,76 @@ const timed = async (input) => {
   }
 };
 
-const build = (slots) => createStickerShopRouter({ classify: null, ...slots, classifierTimeoutMs: timeoutMs });
-const load = async (n) => JSON.parse(await readFile(new URL(n, import.meta.url), 'utf8'));
+/** @param {any} slots */
+const shop = (slots) => createStickerShopRouter({ classify: null, ...slots, classifierTimeoutMs: timeoutMs });
+const load = async (/** @type {string} */ n) => JSON.parse(await readFile(new URL(n, import.meta.url), 'utf8'));
 const banks = { inSample: await load('./messages.json'), heldOut: await load('./held-out.json') };
+const strip = ({ rows, ...rest }) => rest;
+const CHEAP = new Set(['exact', 'score', 'classifier']);
 
-const pct = (arr, p) => {
-  const s = [...arr].sort((a, b) => a - b);
-  return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : 0;
+/** Discordant pairs and the exact McNemar p-value, real model against the keyword mock. */
+const versus = (real, mock, ok) => {
+  let b = 0;
+  let c = 0;
+  real.rows.forEach((r, i) => {
+    if (ok(r) && !ok(mock.rows[i])) b += 1;
+    if (!ok(r) && ok(mock.rows[i])) c += 1;
+  });
+  return { onlyModel: b, onlyMock: c, mcnemarP: Number(mcnemarExact(b, c).toFixed(4)) };
 };
-const round = (x, d = 1) => Number(x.toFixed(d));
-const cost = (s) => (s.input * PRICES.input + s.output * PRICES.output
-  + s.cacheRead * (PRICES.cacheHit ?? 0)) / 1e6;
 
-const result = { provider, model, date: new Date().toISOString(), timeoutMs, prices: PRICES, banks: {} };
-const total = { calls: 0, errors: 0, input: 0, output: 0, cacheRead: 0 };
+const result = {
+  provider, model, servedModels: /** @type {string[]} */ ([]), date: new Date().toISOString(), timeoutMs, maxUsd,
+  prices: spec.prices, banks: /** @type {Record<string, unknown>} */ ({}),
+};
 for (const [name, bank] of Object.entries(banks)) {
-  for (const k of Object.keys(stats)) if (Array.isArray(stats[k])) stats[k] = []; else stats[k] = 0;
-  // The sticker-shop router always has a classifier, so "without" is one that never answers.
-  const shop = (slots) => createStickerShopRouter({ classify: null, ...slots });
+  stats = fresh();
   const noModel = await measure(bank, { build: shop });
   const mock = await measure(bank, { build: shop, classify: createKeywordClassifier() });
-  const real = await measure(bank, { build, classify: timed });
-  const lat = stats.latencies;
-  const usd = cost(stats);
-  const strip = ({ rows, ...rest }) => rest;
+  const real = await measure(bank, { build: shop, classify: timed });
+  const usd = costUsd(spec, stats.usage);
+  const tokens = spec.tokens(stats.usage);
+  const versusMock = {
+    answeredWithoutMainLlm: versus(real, mock, (r) => CHEAP.has(r.layer)),
+    right: versus(real, mock, (r) => r.verdict === 'right'),
+  };
   result.banks[name] = {
     withoutClassifier: strip(noModel),
     keywordMock: strip(mock),
     realModel: {
       ...strip(real),
-      usage: { calls: stats.calls, errors: stats.errors, errorSamples: stats.errorSamples,
-        inputTokens: stats.input, outputTokens: stats.output, cacheReadTokens: stats.cacheRead },
-      latencyMs: { mean: round(lat.reduce((a, b) => a + b, 0) / (lat.length || 1)), p50: round(pct(lat, 0.5)),
-        p95: round(pct(lat, 0.95)), max: round(Math.max(0, ...lat)) },
+      calls: stats.calls, errors: stats.errors, errorSamples: stats.errorSamples, tokens,
+      latencyMs: latencySummary(stats.latencies),
       costUsd: Number(usd.toFixed(6)),
       breakEvenUsdPerMainLlmCall: real.classifierRight ? Number((usd / real.classifierRight).toFixed(6)) : null,
-      rows: real.rows.map(({ text, expect, layer, answerId, verdict }) => ({ text, expect, layer, answerId, verdict })),
+      versusKeywordMock: versusMock,
+      rows: real.rows.map(({ text, expect, layer, answerId, verdict, classifierMs }) => ({
+        text, expect, layer, answerId, verdict, classifierMs, ...(stats.byText.get(text) ?? {}),
+      })),
     },
   };
-  for (const k of ['calls', 'errors', 'input', 'output', 'cacheRead']) total[k] += stats[k];
+  const v = versusMock.answeredWithoutMainLlm;
+  const lat = latencySummary(stats.latencies);
+  const esc = real.escalatedLatencyMs;
   console.log(`== ${name}: ${model} ==`);
   console.log(format(real, { classifierNote: `${model}, real calls` }).join('\n'));
-  console.log(`classifier calls ${stats.calls}, errors ${stats.errors}, tokens in/out ${stats.input}/${stats.output}, `
-    + `p50 ${round(pct(lat, 0.5))} ms, p95 ${round(pct(lat, 0.95))} ms, cost USD ${usd.toFixed(6)}\n`);
+  console.log(`classifier latency p50 ${lat.p50} ms, ${lat.p95 === null ? `max ${lat.max}` : `p95 ${lat.p95}`} ms `
+    + `(n ${lat.n}); added on escalated turns p50 ${esc.p50} ms, `
+    + `${esc.p95 === null ? `max ${esc.max}` : `p95 ${esc.p95}`} ms (n ${esc.n})`);
+  console.log(`tokens ${JSON.stringify(tokens)}, errors ${stats.errors}, cost USD ${usd.toFixed(6)}`);
+  console.log(`vs keyword mock, answered without the main LLM: ${v.onlyModel} only by the model, `
+    + `${v.onlyMock} only by the mock, McNemar exact p = ${v.mcnemarP}\n`);
+  if (ledger.stopped) break;
 }
-result.totalCostUsd = Number(cost({ input: total.input, output: total.output, cacheRead: total.cacheRead }).toFixed(6));
-result.totalUsage = total;
-console.log(`total classifier cost USD ${result.totalCostUsd}`);
-await mkdir(new URL('../reports/', import.meta.url), { recursive: true });
-await writeFile(new URL(`../${outFile}`, import.meta.url), `${JSON.stringify(result, null, 2)}\n`);
+result.servedModels = [...served].sort();
+result.totalCostUsd = Number(ledger.usd.toFixed(6));
+result.budgetReached = ledger.stopped;
+const capNote = ledger.stopped ? ', BUDGET REACHED' : '';
+console.log(`total classifier cost USD ${result.totalCostUsd} (cap ${maxUsd})${capNote}`);
+
+const json = `${JSON.stringify(result, null, 2)}\n`;
+const path = new URL(`../${outFile}`, import.meta.url);
+if (json.includes(key)) throw new Error('the report would contain the API key; not written');
+await mkdir(new URL('./', path), { recursive: true });
+await writeFile(path, json);
+process.exitCode = ledger.stopped ? 1 : 0;

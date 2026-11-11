@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.js", "index.d.ts", "claude.d.ts", "eval.d.ts", "typecheck/*.ts"]
+  "include": ["src/**/*.js", "index.d.ts", "claude.d.ts", "eval.d.ts", "openai-compatible.d.ts", "typecheck/*.ts"]
 }

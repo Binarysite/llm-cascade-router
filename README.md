@@ -175,48 +175,50 @@ than 0.25 of a main LLM call. The Claude adapters report `usage` to check that.
 ### With a real model in layer 3
 
 `npm run bench:real` (`bench/real.js`) runs the same two banks with a model in
-the classifier slot. The main LLM is still the counting mock, so the cost below
-is the classifier's alone. Vocabulary and held-out bank are untouched. Run on
-2026-10-10 with `deepseek-chat` through its OpenAI-style endpoint (the Claude
-adapter was not run: no Anthropic API key was available for this run, so there
-is no Claude number yet; the script takes `--provider anthropic --model
-claude-haiku-5-5` for when there is one). Full report:
-[reports/real-deepseek.json](reports/real-deepseek.json).
+the classifier slot, through the shipped `llm-cascade-router/openai-compatible`
+adapter. The main LLM is still the counting mock, so the cost is the
+classifier's alone. Run on 2026-11-11 with `deepseek-flash`, thinking off; raw
+per-message results in [reports/real-deepseek.json](reports/real-deepseek.json):
 
-| | in-sample (48) | held-out (24) |
-|---|---|---|
-| without a classifier | 25/48 (52.1%) | 7/24 (29.2%) |
-| keyword mock | 31/48 (64.6%) | 7/24 (29.2%) |
-| `deepseek-chat` | 31/48 (64.6%) | 11/24 (45.8%) |
-| wrong fixed answers with `deepseek-chat` | 0 | 2 |
-| classifier calls / answers | 23 / 6 | 17 / 4 |
-| latency p50 / p95 | 906 / 1145 ms | 950 / 1277 ms |
-| tokens in / out | 5011 / 326 | 3692 / 241 |
-| cost, USD | 0.0019 | 0.0014 |
-| break-even, USD per main LLM call saved | 0.00032 | 0.00035 |
+<!-- output: bench/show-real.js -->
+```text
+deepseek-flash in layer 3 (served: deepseek-flash), 2026-11-11, reports/real-deepseek.json
 
-- **The model answered what the keyword mock could not**: 4 of 24 held-out
-  messages, 3 right and 1 wrong, against 0 for the mock. In-sample it answered
-  the same 6 as the mock, all right.
-- **The held-out run has 2 wrong fixed answers, one more than the mock.** The
-  layer 2 one is old (two questions in one message; the classifier cannot fix
-  it because layer 2 answers first). The new one is the classifier's: "my friend
-  said your shipping is slow, is that true for europe?" went to shipping time
-  at high confidence, and the right answer was international shipping.
-- **The classifier is slow for its slot.** About 1 second a call. The example's
-  250 ms timeout would have cut every call, so the run uses 30 s. Set your
-  `classifier.timeoutMs` from a measurement like this one.
-- **Break-even is in dollars here:** the classifier pays off only if one main
-  LLM call costs more than about USD 0.0003 to 0.00035 on this bank. A main LLM
-  call on a longer prompt usually does; check it on yours.
-- **It varies between runs.** Two earlier runs of the same script on the same
-  banks gave 11/24 held-out with 2 wrong twice and 10/24 with 1 wrong once
-  (there the classifier did not send the Europe message to shipping time), and
-  31/48 in-sample every time. Treat one run as a sample, 24 messages as a
-  small one, and the self-reported confidence as uncalibrated.
-- **The price is an upper bound.** DeepSeek's pricing page does not list
-  `deepseek-chat`; the cost uses the `deepseek-flash` peak-hours row (USD 0.30
-  input, 1.20 output per million tokens).
+                            in-sample (49)            held-out (24)
+wrong fixed answers         0 of 32                   2 of 11
+  precision, 95% Wilson     100.0% (89.3 to 100.0)    81.8% (52.3 to 94.9)
+right fixed answers         32                        9
+escalated (cost a call)     1                         1
+answered without the LLM    32/49 (65.3%)             11/24 (45.8%)
+  with the keyword mock     31/49 (63.3%)             7/24 (29.2%)
+  with no classifier        25/49 (51.0%)             7/24 (29.2%)
+  McNemar p, model vs mock  1                         0.125
+classifier calls            24                        17
+  answers right / wrong     7 / 0                     3 / 1
+  unknown ids / errors      0 / 0                     0 / 0
+latency p50 / p95           1102 / 1387 ms            1139 / max 1506 ms
+  added on escalated turns  1121 / max 1387 ms        1139 / max 1506 ms
+tokens prompt / completion  5632 / 342                3981 / 243
+cost, USD (upper bound)     0.0021                    0.0015
+
+total cost USD 0.003586; prices: https://api-docs.deepseek.com/quick_start/pricing, deepseek-flash row, peak hours (the higher one), fetched 2026-11-11
+```
+
+- **Held-out, the model answered 4 messages the mock could not: 3 right, 1
+  wrong.** The wrong one is "my friend said your shipping is slow, is that true
+  for europe?", sent to shipping time; the label is international. The other
+  wrong answer is layer 2's, from before the classifier runs.
+- **The gain is not significant.** 4 messages moved from the LLM to a fixed
+  answer and none the other way: exact McNemar p = 0.125 on 24 messages.
+- **The classifier is slow for its slot**: about 1.1 s per call, added to every
+  turn that still reaches the LLM. The example's 250 ms timeout would cut every
+  call, so the run uses 30 s.
+- **Break-even** is 0.29 (in-sample) and 0.18 (held-out) of a main LLM call per
+  classifier call, counting right answers only.
+- The cost uses DeepSeek's peak-hour price, an upper bound. One run is one
+  sample: an earlier run with `deepseek-chat` (October 2026, through a client
+  written inside the bench, kept in `reports/archive/`) gave the same held-out
+  result, 11 of 24 with the same 2 wrong.
 
 ## Measure your own messages
 
@@ -368,10 +370,10 @@ The reasoning for each is in [docs/DESIGN.md](docs/DESIGN.md).
 - Fixed answers are static strings: no order status, no names.
 - Not a safety layer: put injection and personal-data checks before it.
 - Classifier confidence is not calibrated: set `minConfidence` from your bench.
-- The bench is small and self-made: 72 invented messages by one person, mock
-  main LLM. The classifier slot has been run once with `deepseek-chat` (see
-  above) and never with a Claude model, and the main LLM never, so there is no
-  number here for what a Claude classifier or a main LLM would add or cost.
+- The bench is small and self-made: 73 invented messages by one person, mock
+  main LLM. The classifier slot has been run with `deepseek-flash` through the
+  OpenAI-compatible adapter. The Claude adapters have not been run against the
+  live API (no Anthropic key), and the main LLM slot has not been run at all.
 
 More in [docs/DESIGN.md](docs/DESIGN.md).
 

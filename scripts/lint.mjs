@@ -8,7 +8,7 @@ import { join, extname } from 'node:path';
 const DIRS = ['src', 'test', 'examples', 'bench', 'bin', 'scripts', 'docs', 'typecheck', '.github'];
 const ROOT_FILES = [
   'README.md', 'CHANGELOG.md', 'SECURITY.md', 'CONTRIBUTING.md',
-  'package.json', 'index.d.ts', 'claude.d.ts', 'eval.d.ts',
+  'package.json', 'index.d.ts', 'claude.d.ts', 'eval.d.ts', 'openai-compatible.d.ts',
   'tsconfig.json', 'tsconfig.tools.json', 'tsconfig.strict.json',
 ];
 const MAX_LINE = 120;

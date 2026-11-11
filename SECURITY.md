@@ -42,7 +42,10 @@ run in memory. What leaves your process depends on what you put in the two slots
   user's message. It does not send `context` or the `reply` strings.
 - **`createClaudeLlm`** sends the user's message, its `system` prompt if you set one, and the
   earlier turns in `context.messages` if you pass them. It sends nothing else from `context`.
-- **The API key** is read from `apiKey` or the `ANTHROPIC_API_KEY` environment variable and
+- **`createOpenAiCompatibleClassifier` and `createOpenAiCompatibleLlm`** send the same data
+  as the Claude adapters, to `{baseUrl}/chat/completions`, plus anything in `extraBody`. The
+  key comes from `apiKey` or `OPENAI_API_KEY` and goes only in the `authorization` header.
+- **The Claude API key** is read from `apiKey` or the `ANTHROPIC_API_KEY` environment variable and
   goes only in the `x-api-key` header of the request. `url` overrides the endpoint for tests;
   the key is sent there too, so point it only at hosts you trust. An HTTP error carries the
   status code and, when it is a plain identifier, the provider's error type; the response body

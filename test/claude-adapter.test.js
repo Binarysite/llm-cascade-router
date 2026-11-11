@@ -167,5 +167,5 @@ test('a classifier reply that is not JSON becomes a classifier error, and the ro
   const r = await router.route('can you do a laptop lid');
   assert.equal(r.layer, 'llm');
   assert.equal(r.trace[2].outcome, 'error');
-  assert.match(r.trace[2].reason, /SyntaxError/);
+  assert.equal(r.trace[2].reason, 'Error: createClaudeClassifier: the reply is not JSON');
 });
