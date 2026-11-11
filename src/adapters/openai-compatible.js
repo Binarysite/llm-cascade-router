@@ -29,7 +29,9 @@ function client({ model, apiKey, baseUrl = DEFAULT_BASE_URL, fetch: f, extraBody
   const key = apiKey ?? process.env.OPENAI_API_KEY;
   if (!key) throw new Error(`${who}: pass apiKey or set OPENAI_API_KEY`);
   if (typeof model !== 'string' || !model) throw new Error(`${who}: pass the model id to use`);
-  const url = `${String(baseUrl).replace(/\/+$/, '')}/chat/completions`;
+  let root = String(baseUrl);
+  while (root.endsWith('/')) root = root.slice(0, -1);
+  const url = `${root}/chat/completions`;
   const doFetch = f ?? globalThis.fetch;
 
   /**

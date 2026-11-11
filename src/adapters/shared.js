@@ -42,7 +42,13 @@ export async function errorIdentifier(res) {
  * @returns {Record<string, unknown>}
  */
 export function parseClassifierReply(text, who) {
-  const bare = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  let bare = text.trim();
+  if (bare.startsWith('```')) {
+    bare = bare.slice(3);
+    if (bare.slice(0, 4).toLowerCase() === 'json') bare = bare.slice(4);
+    if (bare.endsWith('```')) bare = bare.slice(0, -3);
+    bare = bare.trim();
+  }
   let out;
   try {
     out = JSON.parse(bare);
