@@ -36,12 +36,17 @@
     "openai-compatible.d.ts",
     "examples",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "NOTICE"
   ],
   "scripts": {
     "test": "node --test",
     "bench": "node bench/run.js",
     "bench:real": "node bench/real.js",
+    "clinc:fetch": "node bench/clinc150/fetch.js",
+    "clinc": "node bench/clinc150/run.js && node bench/clinc150/chart.js && node bench/clinc150/show.js",
+    "clinc:model": "node bench/clinc150/model.js",
+    "cost": "node bench/cost.js",
     "ask": "node examples/sticker-shop/ask.js",
     "measure": "node bin/cascade.js",
     "coverage": "node --test --experimental-test-coverage --test-coverage-include='src/**' --test-coverage-lines=95 --test-coverage-branches=90",
