@@ -33,6 +33,10 @@ deepseek-flash against the keyword mock, same 24 held-out messages: 3 more right
 not significant (McNemar exact p = 0.25 on right answers).
 ```
 
+In plain terms, on CLINC150's 5,500 test messages the router with no model in
+layer 3 answers 110 of the 450 in-scope questions locally, gives 2 wrong fixed
+answers out of the 112 it gave, and sends everything else to the model.
+
 The sticker-shop banks are mine and small, so the real model's held-out gain
 over the mock is not significant (the two lines under the table). CLINC150 is
 public: thresholds chosen on validation, where layers 1-2 answered only 71
@@ -190,14 +194,17 @@ cascade, deepseek-flash in layer 3 *     22  149/166  87.1% (81.3% to 91.3%)  -
   still reach the LLM: the saving is bounded by your share of repeat questions.
 - **A model in layer 3** finds most answerable questions and pays in wrong
   answers, mostly to messages that had to reach the LLM. Its threshold is the
-  untuned default; the curve shows the trade-off a tuned one would pick from.
+  untuned default. The curve is a sweep on the test split, for illustration
+  only: thresholds are tuned on validation, never read off that curve.
   Once it is there, layers 1-2 add no right answers (149 either way) and one
   wrong one; they cut cost and latency only
   ([paired numbers](docs/RESULTS.md#clinc150-in-full)).
 - **Validation is thin**: the 0.98 rule reads a point estimate on 71 answered
   val messages for layers 1-2, whose 95% interval reaches down to 92.4%; the
   `on val` column shows it next to test.
-- **`npm run cost`** gives dollars per 1,000 turns, p50/p95 latency and the
+- **`npm run cost -- --main-in 1.32 --main-out 3.96 --prompt-tokens 2000
+  --output-tokens 300 --main-ms 3000`** (your main model's prices, tokens and
+  latency; bare `npm run cost` exits 2) gives dollars per 1,000 turns, p50/p95 latency and the
   main-call price below which the model in layer 3 loses money. A wrong fixed
   answer skips a main call too: the output says how many saved calls are wrong
   answers, and `--wrong-cost` prices them
