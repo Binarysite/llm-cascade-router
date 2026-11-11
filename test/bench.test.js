@@ -85,7 +85,7 @@ test('wilson95 gives the 95% interval and the bench prints it under the share', 
   const round = (pair) => pair.map((x) => Number(x.toFixed(3)));
   assert.deepEqual(round(wilson95(7, 24)), [0.149, 0.492]);
   assert.deepEqual(round(wilson95(31, 48)), [0.504, 0.766]);
-  assert.deepEqual(wilson95(0, 0), [0, 0]);
+  assert.deepEqual(wilson95(0, 0), [0, 1]);
   const { stdout } = await run(process.execPath, [script]);
   const share = (k, n, pct, lo, hi) => new RegExp(
     `answered without the main LLM: ${k}/${n} \\(${pct}%\\), 95% interval \\(Wilson\\) ${lo}% to ${hi}%`);

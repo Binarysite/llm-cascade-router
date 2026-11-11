@@ -81,7 +81,7 @@ export function format(
 
 export function createMockLlm(): Generate & { calls: () => number };
 
-/** 95% Wilson score interval for k successes out of n. */
+/** 95% Wilson score interval for k successes out of n; [0, 1] when n is 0. Throws RangeError unless 0 <= k <= n. */
 export function wilson95(k: number, n: number): [number, number];
 
 /** Two-sided exact McNemar p-value for b and c discordant pairs. */
