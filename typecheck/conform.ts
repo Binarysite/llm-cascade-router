@@ -4,6 +4,9 @@ import * as impl from '../src/index.js';
 import type * as decl from '../index.js';
 import * as claudeImpl from '../src/adapters/claude.js';
 import type * as claudeDecl from '../claude.js';
+import * as evalImpl from '../src/eval.js';
+import type * as evalDecl from '../eval.js';
 
 export const conforms: typeof decl = impl;
 export const claudeConforms: typeof claudeDecl = claudeImpl;
+export const evalConforms: typeof evalDecl = evalImpl;

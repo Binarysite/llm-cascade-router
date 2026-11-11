@@ -5,7 +5,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createStickerShopRouter } from '../examples/sticker-shop/router.js';
 import { createKeywordClassifier } from '../examples/sticker-shop/classifier.js';
-import { createMockLlm } from '../examples/sticker-shop/llm.js';
+import { createMockLlm } from '../src/eval.js';
 
 const run = promisify(execFile);
 const bank = JSON.parse(await readFile(new URL('../bench/messages.json', import.meta.url), 'utf8'));
@@ -76,9 +76,9 @@ test('bench exits 0 and reports the share answered without the main LLM', async 
   const script = new URL('../bench/run.js', import.meta.url).pathname;
   const { stdout } = await run(process.execPath, [script]);
   assert.match(stdout, /answered without the main LLM: \d+\/\d+ \(\d+\.\d%\)/);
-  assert.match(stdout, /classifier calls: \d+, answers: \d+/);
-  assert.match(stdout, /classifier break-even: \d+\/\d+ = \d\.\d\d/);
-  assert.match(stdout, /wrong fixed answers: 0/);
+  assert.match(stdout, /classifier: \d+ calls, \d+ answers, \d+ right, \d+ wrong/);
+  assert.match(stdout, /break-even: \d+ right \/ \d+ calls = \d\.\d\d/);
+  assert.match(stdout, /wrong fixed answers: 0 of \d+ given/);
 });
 
 test('bench coverage does not silently drop: floors on the cheap share and on escalations', async () => {
@@ -95,7 +95,7 @@ test('bench coverage does not silently drop: floors on the cheap share and on es
   assert.ok(report.escalated.length <= 2, `escalations rose to ${report.escalated.length}`);
   assert.equal(report.classifierCalls, report.total - report.byLayer.exact.turns - report.byLayer.score.turns);
   assert.equal(report.classifierAnswers, report.byLayer.classifier.turns);
-  assert.equal(report.breakEven, Number((report.classifierAnswers / report.classifierCalls).toFixed(3)));
+  assert.equal(report.breakEven, Number((report.classifierRight / report.classifierCalls).toFixed(3)));
 });
 
 test('ask.js with no message routes four demo messages, one per layer', async () => {

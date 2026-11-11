@@ -1,13 +1,13 @@
 import { createRouter } from '../../src/index.js';
 import { answers, synonyms, stopwords, fallback } from './answers.js';
 import { createKeywordClassifier } from './classifier.js';
-import { createMockLlm } from './llm.js';
+import { createMockLlm } from '../../src/eval.js';
 
 /**
- * The sticker shop wired end to end. The thresholds here are example values
- * for this invented data set; tune yours on your own messages with the bench.
+ * The sticker shop wired end to end. `classify: null` leaves layer 3 out; by
+ * default it is the keyword mock.
  * @param {{
- *   classify?: import('../../index.js').Classify,
+ *   classify?: import('../../index.js').Classify | null,
  *   generate?: import('../../index.js').Generate,
  *   classifierTimeoutMs?: number,
  *   onResult?: (result: import('../../index.js').RouteResult) => void | Promise<void>,
@@ -19,7 +19,7 @@ export function createStickerShopRouter({ classify, generate, onResult, classifi
     synonyms,
     stopwords,
     score: { minScore: 0.5, minMargin: 0.1, maxTokens: 10 },
-    classifier: {
+    classifier: classify === null ? null : {
       classify: classify ?? createKeywordClassifier(), minConfidence: 0.65, timeoutMs: classifierTimeoutMs,
     },
     llm: { generate: generate ?? createMockLlm(), timeoutMs: 8000 },

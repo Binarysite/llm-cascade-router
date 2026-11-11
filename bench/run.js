@@ -13,15 +13,21 @@
 //   npm run bench -- --verbose  one line per message
 //   npm run bench -- --json     machine-readable summary
 import { readFile } from 'node:fs/promises';
-import { measure, format } from './measure.js';
+import { measure, format } from '../src/eval.js';
+import { createStickerShopRouter } from '../examples/sticker-shop/router.js';
+import { createKeywordClassifier } from '../examples/sticker-shop/classifier.js';
 
 const args = new Set(process.argv.slice(2));
 const verbose = args.has('--verbose') || args.has('-v');
 const asJson = args.has('--json');
 
 const load = async (name) => JSON.parse(await readFile(new URL(name, import.meta.url), 'utf8'));
-const inSample = await measure(await load('./messages.json'));
-const heldOut = await measure(await load('./held-out.json'));
+/** @param {Parameters<typeof createStickerShopRouter>[0]} slots */
+const build = (slots) => createStickerShopRouter({ classify: null, ...slots });
+/** @param {string} name */
+const run = async (name) => measure(await load(name), { build, classify: createKeywordClassifier() });
+const inSample = await run('./messages.json');
+const heldOut = await run('./held-out.json');
 process.exitCode = inSample.wrong.length ? 1 : 0;
 
 if (asJson) {
@@ -30,7 +36,8 @@ if (asJson) {
 } else {
   console.log('sticker-shop example: keyword mock classifier, mock LLM\n');
   console.log('== in-sample: bench/messages.json, written with the vocabulary ==');
-  console.log(format(inSample, { verbose }).join('\n'));
+  const options = { verbose, noun: 'invented messages', classifierNote: 'keyword mock here, not a model' };
+  console.log(format(inSample, options).join('\n'));
   console.log('\n== held-out: bench/held-out.json, written without looking at the vocabulary ==');
-  console.log(format(heldOut, { verbose }).join('\n'));
+  console.log(format(heldOut, options).join('\n'));
 }
