@@ -2,8 +2,9 @@
 // CLINC150 out-of-scope bench, local configurations only (no network, no key):
 // layers 1 and 2; a TF-IDF nearest-neighbour baseline; and the cascade with that
 // baseline in layer 3. Thresholds are chosen on the validation split by a rule
-// fixed in evaluate.js; the test split is then scored once at those thresholds,
-// and the sweep shows the trade-off around them.
+// fixed in evaluate.js; the test split is then scored at those thresholds (one
+// re-run after a floating-point fix, see History in README.md), and the sweep
+// shows the trade-off around them.
 //   node bench/clinc150/fetch.js && node bench/clinc150/run.js [--check]
 // Writes reports/clinc150.json; --check exits 1 if a fresh run differs from it.
 import { readFile, writeFile } from 'node:fs/promises';
