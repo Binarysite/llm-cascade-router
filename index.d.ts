@@ -22,7 +22,7 @@ export interface Answer {
 }
 
 export interface ScoreOptions {
-  /** Minimum Dice similarity, 0..1. Default 0.5 (an example value, tune it with the bench). */
+  /** Minimum Dice similarity, 0..1. Default 0.5. */
   minScore?: number;
   /** The best answer must beat the runner-up by this much. Default 0.1. */
   minMargin?: number;
@@ -58,7 +58,7 @@ export type Classify = (input: ClassifierInput) => ClassifierOutput | Promise<Cl
 
 export interface ClassifierOptions {
   classify: Classify;
-  /** Default 0.8 (an example value). */
+  /** Default 0.8. */
   minConfidence?: number;
   /** Default 1000 ms, sized for one call to a small model. At most 2147483647 (the setTimeout limit). */
   timeoutMs?: number;

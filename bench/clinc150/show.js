@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Print the committed CLINC150 reports as tables, without the dataset or a network call.
-//   node bench/clinc150/show.js
+//   node bench/clinc150/show.js [--short]
 import { readFile } from 'node:fs/promises';
 
 /** @param {string} f */
@@ -28,6 +28,24 @@ function table(results) {
     .join('  ').trimEnd());
 }
 
+if (process.argv.includes('--short')) {
+  const rows = [
+    ['layers 1-2', local.test['layers 1-2, then LLM']],
+    ['cascade, TF-IDF in layer 3', local.test['cascade: layers 1-2, TF-IDF in layer 3, then LLM']],
+    [`${model.model} alone *`, model.results['model on every message, then LLM']],
+    [`cascade, ${model.model} in layer 3 *`, model.results['cascade: layers 1-2, model in layer 3, then LLM']],
+  ];
+  console.log(`${'CLINC150 test split'.padEnd(36)}wrong  right        precision, 95% Wilson`);
+  for (const [name, r] of rows) {
+    const [lo, hi] = r.precisionInterval95;
+    console.log(`${name.padEnd(36)}${String(r.wrong).padStart(5)}  ${`${r.right}/${r.answerable}`.padEnd(11)}  `
+      + `${pct(r.precision)} (${pct(lo)} to ${pct(hi)})`);
+  }
+  const n = local.test['layers 1-2, then LLM'].n;
+  console.log(`* on a seeded sample of ${model.sample.size} of the ${n} test messages, `
+    + `minConfidence ${model.minConfidence} (untuned)`);
+  process.exit(0);
+}
 const { splits } = local.setup;
 const t = local.test['LLM on every message'];
 const s = local.selection;
