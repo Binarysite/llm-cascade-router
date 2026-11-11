@@ -1,29 +1,54 @@
 {
   "provider": "deepseek",
-  "model": "deepseek-chat",
-  "date": "2026-10-10T17:50:25.362Z",
+  "model": "deepseek-flash",
+  "servedModels": [
+    "deepseek-flash"
+  ],
+  "date": "2026-11-11T12:25:21.807Z",
   "timeoutMs": 30000,
+  "maxUsd": 0.25,
   "prices": {
-    "input": 0.3,
+    "inputCacheHit": 0.006,
+    "inputCacheMiss": 0.3,
     "output": 1.2,
-    "cacheHit": 0.006,
-    "note": "deepseek-flash peak-hours row, upper bound; the pricing page does not list deepseek-chat"
+    "unit": "USD per million tokens",
+    "source": "https://api-docs.deepseek.com/quick_start/pricing, deepseek-flash row, peak hours (the higher one)",
+    "fetched": "2026-11-11"
   },
   "banks": {
     "inSample": {
       "withoutClassifier": {
-        "total": 48,
-        "withFixedAnswer": 32,
-        "llmCalls": 23,
-        "classifierConfigured": true,
-        "classifierCalls": 23,
+        "total": 49,
+        "withFixedAnswer": 33,
+        "llmCalls": 24,
+        "classifierConfigured": false,
+        "classifierCalls": 0,
         "classifierAnswers": 0,
+        "classifierRight": 0,
+        "classifierWrong": 0,
+        "unknownChoices": 0,
         "breakEven": 0,
         "answeredWithoutMainLlm": 25,
         "interval95": [
-          0.383,
-          0.655
+          0.375,
+          0.644
         ],
+        "fixedAnswers": {
+          "given": 25,
+          "right": 25,
+          "wrong": 0,
+          "precision": 1,
+          "interval95": [
+            0.867,
+            1
+          ]
+        },
+        "escalatedLatencyMs": {
+          "n": 0,
+          "p50": null,
+          "p95": null,
+          "max": null
+        },
         "byLayer": {
           "exact": {
             "turns": 10,
@@ -44,10 +69,10 @@
             "escalated": 0
           },
           "llm": {
-            "turns": 23,
+            "turns": 24,
             "right": 16,
             "wrong": 0,
-            "escalated": 7
+            "escalated": 8
           },
           "fallback": {
             "turns": 0,
@@ -64,7 +89,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           },
           {
             "text": "I need them by next friday, is that doable?",
@@ -72,7 +98,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           },
           {
             "text": "could I make one as big as my laptop lid, roughly 13 inch",
@@ -80,7 +107,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           },
           {
             "text": "my design is in canva, which export should I pick, png or pdf?",
@@ -88,7 +116,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           },
           {
             "text": "can I see a mockup to approve first",
@@ -96,7 +125,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           },
           {
             "text": "do you send stickers to the UK or Mexico",
@@ -104,7 +134,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           },
           {
             "text": "I'd like to talk to a human person",
@@ -112,23 +143,52 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
+          },
+          {
+            "text": "what do you charge for shipping",
+            "expect": "shipping-cost",
+            "layer": "llm",
+            "answerId": null,
+            "verdict": "escalated",
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           }
         ]
       },
       "keywordMock": {
-        "total": 48,
-        "withFixedAnswer": 32,
-        "llmCalls": 17,
+        "total": 49,
+        "withFixedAnswer": 33,
+        "llmCalls": 18,
         "classifierConfigured": true,
-        "classifierCalls": 23,
+        "classifierCalls": 24,
         "classifierAnswers": 6,
-        "breakEven": 0.261,
+        "classifierRight": 6,
+        "classifierWrong": 0,
+        "unknownChoices": 0,
+        "breakEven": 0.25,
         "answeredWithoutMainLlm": 31,
         "interval95": [
-          0.504,
-          0.766
+          0.493,
+          0.753
         ],
+        "fixedAnswers": {
+          "given": 31,
+          "right": 31,
+          "wrong": 0,
+          "precision": 1,
+          "interval95": [
+            0.89,
+            1
+          ]
+        },
+        "escalatedLatencyMs": {
+          "n": 18,
+          "p50": 0,
+          "p95": null,
+          "max": 0.1
+        },
         "byLayer": {
           "exact": {
             "turns": 10,
@@ -149,10 +209,10 @@
             "escalated": 0
           },
           "llm": {
-            "turns": 17,
+            "turns": 18,
             "right": 16,
             "wrong": 0,
-            "escalated": 1
+            "escalated": 2
           },
           "fallback": {
             "turns": 0,
@@ -169,23 +229,52 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": 0.05
+          },
+          {
+            "text": "what do you charge for shipping",
+            "expect": "shipping-cost",
+            "layer": "llm",
+            "answerId": null,
+            "verdict": "escalated",
+            "reason": "no cheaper layer answered",
+            "classifierMs": 0.11
           }
         ]
       },
       "realModel": {
-        "total": 48,
-        "withFixedAnswer": 32,
+        "total": 49,
+        "withFixedAnswer": 33,
         "llmCalls": 17,
         "classifierConfigured": true,
-        "classifierCalls": 23,
-        "classifierAnswers": 6,
-        "breakEven": 0.261,
-        "answeredWithoutMainLlm": 31,
+        "classifierCalls": 24,
+        "classifierAnswers": 7,
+        "classifierRight": 7,
+        "classifierWrong": 0,
+        "unknownChoices": 0,
+        "breakEven": 0.292,
+        "answeredWithoutMainLlm": 32,
         "interval95": [
-          0.504,
-          0.766
+          0.513,
+          0.771
         ],
+        "fixedAnswers": {
+          "given": 32,
+          "right": 32,
+          "wrong": 0,
+          "precision": 1,
+          "interval95": [
+            0.893,
+            1
+          ]
+        },
+        "escalatedLatencyMs": {
+          "n": 17,
+          "p50": 1121.1,
+          "p95": null,
+          "max": 1387.3
+        },
         "byLayer": {
           "exact": {
             "turns": 10,
@@ -200,8 +289,8 @@
             "escalated": 0
           },
           "classifier": {
-            "turns": 6,
-            "right": 6,
+            "turns": 7,
+            "right": 7,
             "wrong": 0,
             "escalated": 0
           },
@@ -226,361 +315,478 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": 1093.69
           }
         ],
-        "usage": {
-          "calls": 23,
-          "errors": 0,
-          "errorSamples": [],
-          "inputTokens": 5011,
-          "outputTokens": 326,
-          "cacheReadTokens": 0
+        "calls": 24,
+        "errors": 0,
+        "errorSamples": [],
+        "tokens": {
+          "prompt": 5632,
+          "promptCacheHit": 0,
+          "completion": 342
         },
         "latencyMs": {
-          "mean": 936.2,
-          "p50": 905.7,
-          "p95": 1145.1,
-          "max": 1268.9
+          "n": 24,
+          "p50": 1102.3,
+          "p95": 1387.2,
+          "max": 1583.2
         },
-        "costUsd": 0.001894,
-        "breakEvenUsdPerMainLlmCall": 0.000316,
+        "costUsd": 0.0021,
+        "breakEvenUsdPerMainLlmCall": 0.0003,
+        "versusKeywordMock": {
+          "answeredWithoutMainLlm": {
+            "onlyModel": 1,
+            "onlyMock": 0,
+            "mcnemarP": 1
+          },
+          "right": {
+            "onlyModel": 1,
+            "onlyMock": 0,
+            "mcnemarP": 1
+          }
+        },
         "rows": [
           {
             "text": "How long does shipping take?",
             "expect": "shipping-time",
             "layer": "exact",
             "answerId": "shipping-time",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "what does shipping cost",
             "expect": "shipping-cost",
             "layer": "exact",
             "answerId": "shipping-cost",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "Do you ship internationally?",
             "expect": "international",
             "layer": "exact",
             "answerId": "international",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "What sizes do you print?",
             "expect": "sizes",
             "layer": "exact",
             "answerId": "sizes",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "Are the stickers waterproof??",
             "expect": "waterproof",
             "layer": "exact",
             "answerId": "waterproof",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "what file formats do you accept",
             "expect": "file-formats",
             "layer": "exact",
             "answerId": "file-formats",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "Is there a minimum?",
             "expect": "minimum-order",
             "layer": "exact",
             "answerId": "minimum-order",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "What is a proof?",
             "expect": "proof",
             "layer": "exact",
             "answerId": "proof",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "How can I contact you?",
             "expect": "contact",
             "layer": "exact",
             "answerId": "contact",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "what are your hours",
             "expect": "contact",
             "layer": "exact",
             "answerId": "contact",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "how long is delivery",
             "expect": "shipping-time",
             "layer": "score",
             "answerId": "shipping-time",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "when do my stickers arrive",
             "expect": "shipping-time",
             "layer": "score",
             "answerId": "shipping-time",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "is delivery free?",
             "expect": "shipping-cost",
             "layer": "score",
             "answerId": "shipping-cost",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "shipping price?",
             "expect": "shipping-cost",
             "layer": "score",
             "answerId": "shipping-cost",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "do you deliver to canada",
             "expect": "international",
             "layer": "score",
             "answerId": "international",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "how big can decals be",
             "expect": "sizes",
             "layer": "score",
             "answerId": "sizes",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "are your labels weatherproof",
             "expect": "waterproof",
             "layer": "score",
             "answerId": "waterproof",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "can i upload a pdf",
             "expect": "file-formats",
             "layer": "score",
             "answerId": "file-formats",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "whats the minimum quantity",
             "expect": "minimum-order",
             "layer": "score",
             "answerId": "minimum-order",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "do I get a proof before you print",
             "expect": "proof",
             "layer": "score",
             "answerId": "proof",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "is there a phone number to call",
             "expect": "contact",
             "layer": "score",
             "answerId": "contact",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "how fast do u shiping",
             "expect": "shipping-time",
             "layer": "score",
             "answerId": "shipping-time",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "will these survive on a water bottle that goes through the wash",
             "expect": "waterproof",
             "layer": "classifier",
             "answerId": "waterproof",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1179.85,
+            "choice": "waterproof",
+            "confidence": 0.97
           },
           {
             "text": "I need them by next friday, is that doable?",
             "expect": "shipping-time",
             "layer": "llm",
             "answerId": null,
-            "verdict": "escalated"
+            "verdict": "escalated",
+            "classifierMs": 1093.69,
+            "choice": null,
+            "confidence": 0.9
           },
           {
             "text": "could I make one as big as my laptop lid, roughly 13 inch",
             "expect": "sizes",
             "layer": "classifier",
             "answerId": "sizes",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1052.66,
+            "choice": "sizes",
+            "confidence": 0.9
           },
           {
             "text": "my design is in canva, which export should I pick, png or pdf?",
             "expect": "file-formats",
             "layer": "classifier",
             "answerId": "file-formats",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1102.34,
+            "choice": "file-formats",
+            "confidence": 0.95
           },
           {
             "text": "can I see a mockup to approve first",
             "expect": "proof",
             "layer": "classifier",
             "answerId": "proof",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 976.26,
+            "choice": "proof",
+            "confidence": 0.95
           },
           {
             "text": "can I order only 3 of one design",
             "expect": "minimum-order",
             "layer": "score",
             "answerId": "minimum-order",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "do you send stickers to the UK or Mexico",
             "expect": "international",
             "layer": "classifier",
             "answerId": "international",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1304.44,
+            "choice": "international",
+            "confidence": 0.97
           },
           {
             "text": "I'd like to talk to a human person",
             "expect": "contact",
             "layer": "classifier",
             "answerId": "contact",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 936.69,
+            "choice": "contact",
+            "confidence": 0.95
           },
           {
             "text": "will the colors fade if it sits outside in the sun on my car",
             "expect": "waterproof",
             "layer": "score",
             "answerId": "waterproof",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "what's the postage fee",
             "expect": "shipping-cost",
             "layer": "score",
             "answerId": "shipping-cost",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "Where is my order #10482?",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 999.79,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "My stickers arrived damaged, I want a refund",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1121.81,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "I was charged twice for shipping",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1348.7,
+            "choice": null,
+            "confidence": 0.95
+          },
+          {
+            "text": "what do you charge for shipping",
+            "expect": "shipping-cost",
+            "layer": "classifier",
+            "answerId": "shipping-cost",
+            "verdict": "right",
+            "classifierMs": 1583.32,
+            "choice": "shipping-cost",
+            "confidence": 0.98
           },
           {
             "text": "There's a typo on my proof, can you fix it?",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1121.1,
+            "choice": null,
+            "confidence": 0.9
           },
           {
             "text": "How much would 500 die-cut stickers cost?",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1055.71,
+            "choice": null,
+            "confidence": 0.9
           },
           {
             "text": "Can you design a logo for my band?",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1022.71,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "do you print holographic or glitter stickers",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1215.71,
+            "choice": null,
+            "confidence": 0.9
           },
           {
             "text": "my order is late and the tracking hasn't moved in a week",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 819.36,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "can I change the shipping address on order 10533",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 817.97,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "Do you offer a discount for schools or nonprofits?",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1271.07,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "what's the difference between matte and glossy laminate",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1153.8,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "I uploaded the wrong file, can I replace it before printing?",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 909.93,
+            "choice": null,
+            "confidence": 0.9
           },
           {
             "text": "hi! I run a coffee shop and want stickers for cups, bags and the window, what would you recommend and how fast could you do it",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 756.06,
+            "choice": null,
+            "confidence": 0.9
           },
           {
             "text": "👍",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1317.64,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "is it ok to put these on a baby's crib",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1387.25,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "cancel my order",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1350.82,
+            "choice": null,
+            "confidence": 0.95
           }
         ]
       }
@@ -590,15 +796,34 @@
         "total": 24,
         "withFixedAnswer": 11,
         "llmCalls": 17,
-        "classifierConfigured": true,
-        "classifierCalls": 17,
+        "classifierConfigured": false,
+        "classifierCalls": 0,
         "classifierAnswers": 0,
+        "classifierRight": 0,
+        "classifierWrong": 0,
+        "unknownChoices": 0,
         "breakEven": 0,
         "answeredWithoutMainLlm": 7,
         "interval95": [
           0.149,
           0.492
         ],
+        "fixedAnswers": {
+          "given": 7,
+          "right": 6,
+          "wrong": 1,
+          "precision": 0.857,
+          "interval95": [
+            0.487,
+            0.974
+          ]
+        },
+        "escalatedLatencyMs": {
+          "n": 0,
+          "p50": null,
+          "p95": null,
+          "max": null
+        },
         "byLayer": {
           "exact": {
             "turns": 1,
@@ -638,7 +863,8 @@
             "layer": "score",
             "answerId": "shipping-time",
             "verdict": "wrong",
-            "reason": "shipping-time 0.75 via \"how long does shipping take\", next shipping-cost 0.286"
+            "reason": "shipping-time 0.75 via \"how long does shipping take\", next shipping-cost 0.286",
+            "classifierMs": null
           }
         ],
         "escalated": [
@@ -648,7 +874,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           },
           {
             "text": "how many days until my package gets here",
@@ -656,7 +883,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           },
           {
             "text": "hwo log dose shiping tak",
@@ -664,7 +892,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           },
           {
             "text": "not asking about price, I want to know if they are waterproof",
@@ -672,7 +901,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           },
           {
             "text": "my friend said your shipping is slow, is that true for europe?",
@@ -680,7 +910,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": null
           }
         ]
       },
@@ -691,12 +922,31 @@
         "classifierConfigured": true,
         "classifierCalls": 17,
         "classifierAnswers": 0,
+        "classifierRight": 0,
+        "classifierWrong": 0,
+        "unknownChoices": 0,
         "breakEven": 0,
         "answeredWithoutMainLlm": 7,
         "interval95": [
           0.149,
           0.492
         ],
+        "fixedAnswers": {
+          "given": 7,
+          "right": 6,
+          "wrong": 1,
+          "precision": 0.857,
+          "interval95": [
+            0.487,
+            0.974
+          ]
+        },
+        "escalatedLatencyMs": {
+          "n": 17,
+          "p50": 0.1,
+          "p95": null,
+          "max": 0.1
+        },
         "byLayer": {
           "exact": {
             "turns": 1,
@@ -736,7 +986,8 @@
             "layer": "score",
             "answerId": "shipping-time",
             "verdict": "wrong",
-            "reason": "shipping-time 0.75 via \"how long does shipping take\", next shipping-cost 0.286"
+            "reason": "shipping-time 0.75 via \"how long does shipping take\", next shipping-cost 0.286",
+            "classifierMs": null
           }
         ],
         "escalated": [
@@ -746,7 +997,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": 0.09
           },
           {
             "text": "how many days until my package gets here",
@@ -754,7 +1006,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": 0.06
           },
           {
             "text": "hwo log dose shiping tak",
@@ -762,7 +1015,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": 0.03
           },
           {
             "text": "not asking about price, I want to know if they are waterproof",
@@ -770,7 +1024,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": 0.05
           },
           {
             "text": "my friend said your shipping is slow, is that true for europe?",
@@ -778,7 +1033,8 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": 0.09
           }
         ]
       },
@@ -789,12 +1045,31 @@
         "classifierConfigured": true,
         "classifierCalls": 17,
         "classifierAnswers": 4,
-        "breakEven": 0.235,
+        "classifierRight": 3,
+        "classifierWrong": 1,
+        "unknownChoices": 0,
+        "breakEven": 0.176,
         "answeredWithoutMainLlm": 11,
         "interval95": [
           0.279,
           0.649
         ],
+        "fixedAnswers": {
+          "given": 11,
+          "right": 9,
+          "wrong": 2,
+          "precision": 0.818,
+          "interval95": [
+            0.523,
+            0.949
+          ]
+        },
+        "escalatedLatencyMs": {
+          "n": 13,
+          "p50": 1138.6,
+          "p95": null,
+          "max": 1506.4
+        },
         "byLayer": {
           "exact": {
             "turns": 1,
@@ -834,7 +1109,8 @@
             "layer": "score",
             "answerId": "shipping-time",
             "verdict": "wrong",
-            "reason": "shipping-time 0.75 via \"how long does shipping take\", next shipping-cost 0.286"
+            "reason": "shipping-time 0.75 via \"how long does shipping take\", next shipping-cost 0.286",
+            "classifierMs": null
           },
           {
             "text": "my friend said your shipping is slow, is that true for europe?",
@@ -842,7 +1118,8 @@
             "layer": "classifier",
             "answerId": "shipping-time",
             "verdict": "wrong",
-            "reason": "shipping-time at 0.9"
+            "reason": "shipping-time at 0.8",
+            "classifierMs": 1237.96
           }
         ],
         "escalated": [
@@ -852,204 +1129,269 @@
             "layer": "llm",
             "answerId": null,
             "verdict": "escalated",
-            "reason": "no cheaper layer answered"
+            "reason": "no cheaper layer answered",
+            "classifierMs": 1506.41
           }
         ],
-        "usage": {
-          "calls": 17,
-          "errors": 0,
-          "errorSamples": [],
-          "inputTokens": 3692,
-          "outputTokens": 241,
-          "cacheReadTokens": 0
+        "calls": 17,
+        "errors": 0,
+        "errorSamples": [],
+        "tokens": {
+          "prompt": 3981,
+          "promptCacheHit": 0,
+          "completion": 243
         },
         "latencyMs": {
-          "mean": 944.1,
-          "p50": 949.5,
-          "p95": 1276.8,
-          "max": 1276.8
+          "n": 17,
+          "p50": 1138.5,
+          "p95": null,
+          "max": 1506.4
         },
-        "costUsd": 0.001397,
-        "breakEvenUsdPerMainLlmCall": 0.000349,
+        "costUsd": 0.001486,
+        "breakEvenUsdPerMainLlmCall": 0.000495,
+        "versusKeywordMock": {
+          "answeredWithoutMainLlm": {
+            "onlyModel": 4,
+            "onlyMock": 0,
+            "mcnemarP": 0.125
+          },
+          "right": {
+            "onlyModel": 3,
+            "onlyMock": 0,
+            "mcnemarP": 0.25
+          }
+        },
         "rows": [
           {
             "text": "do you ship to canada?",
             "expect": "international",
             "layer": "exact",
             "answerId": "international",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "what file type should I upload for my design",
             "expect": "file-formats",
             "layer": "score",
             "answerId": "file-formats",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "are your stickers ok outside in the rain",
             "expect": "waterproof",
             "layer": "score",
             "answerId": "waterproof",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "whats the smallest number of stickers i can order",
             "expect": "minimum-order",
             "layer": "score",
             "answerId": "minimum-order",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "can i pay with paypal",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1268.37,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "how much for 200 die cut stickers 3 inch",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1297.38,
+            "choice": null,
+            "confidence": 0.9
           },
           {
             "text": "i need to change the shipping address on order 10734",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1015.03,
+            "choice": null,
+            "confidence": 0.97
           },
           {
             "text": "how do I get in touch with a real person",
             "expect": "contact",
             "layer": "classifier",
             "answerId": "contact",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1201.9,
+            "choice": "contact",
+            "confidence": 0.98
           },
           {
             "text": "how many days until my package gets here",
             "expect": "shipping-time",
             "layer": "llm",
             "answerId": null,
-            "verdict": "escalated"
+            "verdict": "escalated",
+            "classifierMs": 1506.41,
+            "choice": null,
+            "confidence": 0.9
           },
           {
             "text": "do you make holographic stickers",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1359.41,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "can I see a proof before you print",
             "expect": "proof",
             "layer": "score",
             "answerId": "proof",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "where is my order 10622, it was supposed to come monday",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 773.61,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "is there a discount code for first order",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1166.7,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "can you print a photo of my dog as a sticker",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1017.58,
+            "choice": null,
+            "confidence": 0.9
           },
           {
             "text": "what sizes do you have",
             "expect": "sizes",
             "layer": "score",
             "answerId": "sizes",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": null
           },
           {
             "text": "I want my money back, the colors are wrong",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 736.4,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "the shipping box was fine but the stickers inside are peeling after one day",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1138.55,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "I don't need a proof, just print it",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 954.51,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "how long does shipping take and can I pay with apple pay?",
             "expect": "llm",
             "layer": "score",
             "answerId": "shipping-time",
-            "verdict": "wrong"
+            "verdict": "wrong",
+            "classifierMs": null
           },
           {
             "text": "hwo log dose shiping tak",
             "expect": "shipping-time",
             "layer": "classifier",
             "answerId": "shipping-time",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1087.97,
+            "choice": "shipping-time",
+            "confidence": 0.97
           },
           {
             "text": "not asking about price, I want to know if they are waterproof",
             "expect": "waterproof",
             "layer": "classifier",
             "answerId": "waterproof",
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1005.55,
+            "choice": "waterproof",
+            "confidence": 0.99
           },
           {
             "text": "my friend said your shipping is slow, is that true for europe?",
             "expect": "international",
             "layer": "classifier",
             "answerId": "shipping-time",
-            "verdict": "wrong"
+            "verdict": "wrong",
+            "classifierMs": 1237.96,
+            "choice": "shipping-time",
+            "confidence": 0.8
           },
           {
             "text": "can i return stickers i dont like",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1028.48,
+            "choice": null,
+            "confidence": 0.95
           },
           {
             "text": "do you sell sticker paper so I can print at home",
             "expect": "llm",
             "layer": "llm",
             "answerId": null,
-            "verdict": "right"
+            "verdict": "right",
+            "classifierMs": 1222.35,
+            "choice": null,
+            "confidence": 0.95
           }
         ]
       }
     }
   },
-  "totalCostUsd": 0.003291,
-  "totalUsage": {
-    "calls": 40,
-    "errors": 0,
-    "input": 8703,
-    "output": 567,
-    "cacheRead": 0
-  }
+  "totalCostUsd": 0.003586,
+  "budgetReached": false
 }
