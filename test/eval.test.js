@@ -64,6 +64,34 @@ test('mcnemarExact gives the two-sided exact p-value', () => {
   assert.ok(Math.abs(mcnemarExact(10, 2) - 0.03857421875) < 1e-12);
 });
 
+/** Two-sided exact McNemar p from BigInt binomial sums: 2 * sum_{i<=min} C(n, i) / 2^n, capped at 1. */
+function referenceMcnemar(b, c) {
+  const n = BigInt(b + c);
+  let coef = 1n;
+  let tail = 0n;
+  for (let i = 0n; i <= BigInt(Math.min(b, c)); i += 1n) {
+    tail += coef;
+    coef = (coef * (n - i)) / (i + 1n);
+  }
+  const num = 2n * tail;
+  const den = 1n << n;
+  if (num >= den) return 1;
+  // 64 fractional bits of the exact ratio; plenty for p-values that are not astronomically small.
+  return Number((num << 64n) / den) / 2 ** 64;
+}
+
+test('mcnemarExact does not underflow with many discordant pairs', () => {
+  assert.equal(mcnemarExact(600, 600), 1);
+  assert.equal(mcnemarExact(538, 538), 1);
+  assert.equal(mcnemarExact(500, 500), 1);
+  for (const [b, c] of [[1100, 1000], [1000, 1100], [600, 520], [520, 480], [4000, 3800], [12, 3]]) {
+    const want = referenceMcnemar(b, c);
+    const got = mcnemarExact(b, c);
+    assert.ok(want > 0 && want < 1, `reference in (0, 1) for ${b}, ${c}: ${want}`);
+    assert.ok(Math.abs(got - want) / want < 1e-9, `${b}, ${c}: got ${got}, want ${want}`);
+  }
+});
+
 test('latencySummary gives nearest-rank p50 and max, and p95 only from 20 samples', () => {
   assert.deepEqual(latencySummary([]), { n: 0, p50: null, p95: null, max: null });
   assert.deepEqual(latencySummary([30, 10, 20]), { n: 3, p50: 20, p95: null, max: 30 });
@@ -71,8 +99,14 @@ test('latencySummary gives nearest-rank p50 and max, and p95 only from 20 sample
   assert.deepEqual(latencySummary(twenty), { n: 20, p50: 10, p95: 19, max: 20 });
 });
 
+test('wilson95 edge cases: no trials is the whole range, impossible counts throw', () => {
+  assert.deepEqual(wilson95(0, 0), [0, 1]);
+  assert.throws(() => wilson95(5, 4), RangeError);
+  assert.throws(() => wilson95(-1, 4), RangeError);
+  assert.throws(() => wilson95(1, -1), RangeError);
+});
+
 test('wilson95 and the mock LLM', async () => {
-  assert.deepEqual(wilson95(0, 0), [0, 0]);
   const [lo, hi] = wilson95(31, 31);
   assert.ok(lo > 0.88 && lo < 0.9 && hi === 1);
   const llm = createMockLlm();

@@ -27,7 +27,8 @@ export function createMockLlm() {
  * @returns {[number, number]}
  */
 export function wilson95(k, n) {
-  if (!n) return [0, 0];
+  if (!(n >= 0) || !(k >= 0) || k > n) throw new RangeError(`wilson95 needs 0 <= k <= n, got k=${k}, n=${n}`);
+  if (!n) return [0, 1]; // no trials: the proportion can be anything
   const p = k / n;
   const d = 1 + (Z95 * Z95) / n;
   const center = (p + (Z95 * Z95) / (2 * n)) / d;
@@ -38,19 +39,35 @@ export function wilson95(k, n) {
 /**
  * Two-sided exact McNemar test on paired outcomes: b pairs where only the first
  * system succeeded, c where only the second did. Returns the p-value.
+ * Up to 1000 pairs the terms are summed directly (exact for small counts); above
+ * that in log space, because 0.5 ** n underflows to 0 from n = 1075.
  * @param {number} b
  * @param {number} c
  */
 export function mcnemarExact(b, c) {
   const n = b + c;
   if (n === 0) return 1;
-  let tail = 0;
-  let term = 0.5 ** n; // C(n, 0) / 2^n
-  for (let i = 0; i <= Math.min(b, c); i += 1) {
-    tail += term;
-    term = (term * (n - i)) / (i + 1);
+  const k = Math.min(b, c);
+  if (n <= 1000) {
+    let tail = 0;
+    let term = 0.5 ** n; // C(n, 0) / 2^n
+    for (let i = 0; i <= k; i += 1) {
+      tail += term;
+      term = (term * (n - i)) / (i + 1);
+    }
+    return Math.min(1, 2 * tail);
   }
-  return Math.min(1, 2 * tail);
+  // log of the largest tail term, C(n, k) / 2^n
+  let logTop = -n * Math.LN2;
+  for (let i = 0; i < k; i += 1) logTop += Math.log(n - i) - Math.log(i + 1);
+  // the tail sum relative to that term, walking down: C(n, i - 1) = C(n, i) * i / (n - i + 1)
+  let rel = 1;
+  let sum = 1;
+  for (let i = k; i > 0; i -= 1) {
+    rel = (rel * i) / (n - i + 1);
+    sum += rel;
+  }
+  return Math.min(1, Math.exp(Math.LN2 + logTop + Math.log(sum)));
 }
 
 /**

@@ -6,6 +6,15 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `mcnemarExact` returned 0 from 1,075 discordant pairs on, because `0.5 ** n` underflows;
+  above 1,000 pairs it now sums in log space (`mcnemarExact(600, 600)` is 1, as it must be).
+  Tests check it against an exact BigInt binomial sum.
+- `wilson95(0, 0)` returns `[0, 1]` (no trials says nothing) instead of `[0, 0]`, and a count
+  outside `0 <= k <= n` throws `RangeError`. The only report entry this moves is the precision
+  interval of "LLM on every message" in `reports/clinc150.json`, which answers nothing.
+
 ### Security
 
 - The README drift tooling no longer executes whatever an `<!-- output: ... -->` marker says: only an
