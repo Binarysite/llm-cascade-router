@@ -15,7 +15,7 @@ const round = (n) => Math.round(n * 1000) / 1000;
  * message: the classifier proposes, the config has the last word.
  *
  * @param {{
- *   answers: ReadonlyArray<{ id: string, reply: string, description: string, avoid: ReadonlyArray<string> }>,
+ *   answers: ReadonlyArray<{ id: string, reply: string, description: string }>,
  *   classifier: { classify: Function, minConfidence: number, timeoutMs: number },
  * }} config
  * @param {ReturnType<typeof import('../vocabulary.js').createVocabulary>} vocabulary
@@ -25,11 +25,10 @@ export function createClassifierLayer({ answers, classifier }, vocabulary) {
   const { classify, minConfidence, timeoutMs } = classifier;
   const choices = Object.freeze(answers.map((a) => Object.freeze({ id: a.id, description: a.description })));
   const byId = new Map(answers.map((a) => [a.id, a]));
-  const avoidOf = new Map(answers.map((a) => [a.id, [...vocabulary.contentTokens(a.avoid.join(' '))]]));
 
   return {
     name: 'classifier',
-    async run({ message, context, signal }) {
+    async run({ message, avoidWords, context, signal }) {
       const out = await withTimeout(
         'classifier',
         (s) => classify({ message, choices, context, signal: s }),
@@ -39,9 +38,7 @@ export function createClassifierLayer({ answers, classifier }, vocabulary) {
       if (out === null || typeof out !== 'object' || Array.isArray(out)) {
         return { outcome: 'error', reason: 'classifier must return { choice, confidence }' };
       }
-      // A classifier that reports token usage (the Claude adapter does) gets it
-      // into the trace on every outcome, so a logger can count what layer 3
-      // costs on the turns it answers and on the ones it passes on.
+      // usage reaches the trace on every outcome, so a logger can count what layer 3 costs.
       const { choice, confidence, usage } = out;
       const extra = usage === undefined ? {} : { usage };
       const step = (fields) => ({ ...fields, ...extra });
@@ -60,7 +57,7 @@ export function createClassifierLayer({ answers, classifier }, vocabulary) {
         return step({ outcome: 'miss', reason: `unknown choice "${String(choice)}"`, confidence: round(confidence) });
       }
       // The same guard as layer 2: an answer's avoid words veto it here too.
-      const vetoed = vocabulary.avoidHit(vocabulary.contentTokens(message), avoidOf.get(choice));
+      const vetoed = vocabulary.vetoOf(choice, avoidWords);
       if (vetoed) {
         return step({
           outcome: 'miss',

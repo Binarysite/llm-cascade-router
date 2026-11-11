@@ -29,10 +29,16 @@ Embeddings would catch more paraphrases, but they need a model: layer 3.
 
 **`avoid` words are a veto across layers.** Similarity measures what a message
 shares with a question, not what makes it different: one word ("damaged",
-"refund") turns a FAQ into a problem with an order. Setup rejects an avoid word
-that is a stopword or that, through synonyms or typos, equals a word of the
-answer's own phrases. That check caught "charged", one edit from the synonym
-"charge", vetoing the shipping-cost answer on every cost question.
+"refund") turns a FAQ into a problem with an order. Avoid words are single
+words and match exactly after synonyms; an answer can opt in to one-typo
+matching with `avoidTypos`. Exact is the default because a fuzzy veto misfires:
+"charge" is one edit from "change" and "charged", and in 0.1.x it vetoed both
+shipping answers on "what do you charge for shipping", which then got the
+international answer. A vetoed answer stays in layer 2's ranking: if it fits
+best the turn is a miss, and it still counts as the runner-up for the margin,
+so a veto can only remove a fixed answer, never hand one to the second best.
+Setup rejects an avoid word that is a stopword, has more than one word, or
+matches the answer's own phrases.
 
 **Four fixed layers, two injectable slots.** `classify` and `generate` cover
 the real variation; a pluggable layer list adds API surface without a case for it.

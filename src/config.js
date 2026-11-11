@@ -64,7 +64,7 @@ export function validateConfig(raw) {
     }
   }
 
-  const vocabulary = createVocabulary({ synonyms, stopwords, typoTolerance: score.typoTolerance });
+  const vocabulary = createVocabulary({ synonyms, stopwords, typoTolerance: score.typoTolerance, answers });
   checkAvoidAgainstPhrases(answers, vocabulary, problems);
 
   if (!isText(raw.fallback)) problems.push('fallback must be a non-empty string');
@@ -86,19 +86,18 @@ export function validateConfig(raw) {
 }
 
 /**
- * An avoid word that (after synonyms and typo tolerance) equals a word of the
- * answer's own phrases would veto the answer on its own questions. Easy to do
- * by accident with a synonym list, so it fails at setup instead.
- * @param {ReadonlyArray<{ id: string, phrases: ReadonlyArray<string>, avoid: ReadonlyArray<string> }>} answers
+ * An avoid word that (through synonyms, or a typo when the answer opts in)
+ * appears in one of the answer's own phrases would veto the answer on its own
+ * questions. Easy to do by accident with a synonym list, so it fails at setup.
+ * @param {ReadonlyArray<{ id: string, phrases: ReadonlyArray<string> }>} answers
  * @param {ReturnType<typeof createVocabulary>} vocabulary
  * @param {string[]} problems
  */
 function checkAvoidAgainstPhrases(answers, vocabulary, problems) {
   for (const a of answers) {
-    const own = vocabulary.contentTokens(a.phrases.join(' '));
-    for (const word of a.avoid) {
-      const clash = [...vocabulary.contentTokens(word)].find((t) => vocabulary.inQuery(own, t));
-      if (clash) problems.push(`answer "${a.id}": avoid word "${word}" matches "${clash}" in its own phrases`);
+    for (const phrase of a.phrases) {
+      const word = vocabulary.vetoOf(a.id, vocabulary.avoidWords(normalize(phrase).split(' ')));
+      if (word) problems.push(`answer "${a.id}": avoid word "${word}" matches its own phrase "${phrase}"`);
     }
   }
 }
@@ -117,7 +116,7 @@ function validateAnswers(list, problems) {
       return null;
     }
     for (const key of Object.keys(a)) {
-      if (!['id', 'reply', 'phrases', 'avoid', 'description'].includes(key)) {
+      if (!['id', 'reply', 'phrases', 'avoid', 'avoidTypos', 'description'].includes(key)) {
         problems.push(`${at}: unknown key "${key}"`);
       }
     }
@@ -143,11 +142,20 @@ function validateAnswers(list, problems) {
       owners.set(n, a.id);
     }
     const avoid = textList(a.avoid, `${at}.avoid`, problems, { required: false });
+    for (const word of avoid) {
+      const n = normalize(word);
+      if (!n) problems.push(`${at}.avoid: "${word}" is empty after normalization`);
+      else if (n.includes(' ')) problems.push(`${at}: avoid word "${word}" must be a single word`);
+    }
+    if (a.avoidTypos !== undefined && typeof a.avoidTypos !== 'boolean') {
+      problems.push(`${at}.avoidTypos must be a boolean`);
+    }
     return Object.freeze({
       id: a.id,
       reply: a.reply,
       phrases: Object.freeze(phrases),
       avoid: Object.freeze(avoid),
+      avoidTypos: a.avoidTypos === true,
       description: a.description ?? phrases[0],
     });
   }).filter(Boolean);

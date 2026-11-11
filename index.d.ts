@@ -10,8 +10,13 @@ export interface Answer {
   reply: string;
   /** Example questions. Layer 1 matches them exactly (after normalization), layer 2 scores against them. */
   phrases: string[];
-  /** Words that veto this answer in every cheap layer, e.g. "damaged" on a shipping-time answer. */
+  /**
+   * Single words that veto this answer in layers 2 and 3, e.g. "damaged" on a shipping-time answer.
+   * They match exactly after normalization and synonyms; a vetoed best answer is a miss.
+   */
   avoid?: string[];
+  /** Let this answer's avoid words also match one edit away (words of 5+ letters, no digits). Default false. */
+  avoidTypos?: boolean;
   /** What the classifier sees for this choice. Defaults to the first phrase. */
   description?: string;
 }
@@ -104,8 +109,10 @@ export interface TraceStep {
   reason: string;
   latencyMs: number;
   answerId?: string | null;
-  /** Layer 2 only. */
+  /** Layer 2 only: the top answer's score. */
   score?: number;
+  /** Layer 2 only: the top score minus the runner-up's (vetoed or not). */
+  margin?: number;
   /** Layer 3 only. */
   confidence?: number;
   /** Layer 3 only: the `usage` field the classifier returned, if any, on a hit or a miss. */

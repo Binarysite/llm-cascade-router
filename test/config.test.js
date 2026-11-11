@@ -118,11 +118,18 @@ test('an avoid word that is also a stopword is rejected, since it could never ma
 test('an avoid word that matches the answer\'s own phrases through a synonym fails at setup', () => {
   const config = {
     ...minimal(),
-    answers: [{ id: 'cost', reply: 'Free over $35.', phrases: ['what does shipping cost'], avoid: ['charged'] }],
+    answers: [{ id: 'cost', reply: 'Free over $35.', phrases: ['what does shipping cost'], avoid: ['charge'] }],
     synonyms: { cost: ['price', 'charge'] },
   };
-  assert.throws(() => createRouter(config), /avoid word "charged" matches "cost" in its own phrases/);
-  assert.ok(problemsOf(config).some((p) => p.includes('avoid word "charged"')), 'validateConfig catches it too');
+  assert.throws(() => createRouter(config), /avoid word "charge" matches its own phrase "what does shipping cost"/);
+  assert.ok(problemsOf(config).some((p) => p.includes('avoid word "charge"')), 'validateConfig catches it too');
+});
+
+test('a typo-close avoid word clashes only when the answer opts in to avoid typos', () => {
+  const answer = { id: 'cost', reply: 'Free over $35.', phrases: ['what does shipping cost'], avoid: ['shippin'] };
+  assert.doesNotThrow(() => validateConfig({ ...minimal(), answers: [answer] }));
+  const problems = problemsOf({ ...minimal(), answers: [{ ...answer, avoidTypos: true }] });
+  assert.ok(problems.some((p) => p.includes('avoid word "shippin" matches its own phrase')));
 });
 
 test('an avoid clash is listed together with the other problems, not after them', () => {
