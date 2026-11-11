@@ -18,6 +18,10 @@
       "types": "./claude.d.ts",
       "default": "./src/adapters/claude.js"
     },
+    "./openai-compatible": {
+      "types": "./openai-compatible.d.ts",
+      "default": "./src/adapters/openai-compatible.js"
+    },
     "./eval": {
       "types": "./eval.d.ts",
       "default": "./src/eval.js"
@@ -29,6 +33,7 @@
     "index.d.ts",
     "claude.d.ts",
     "eval.d.ts",
+    "openai-compatible.d.ts",
     "examples",
     "LICENSE",
     "README.md"
