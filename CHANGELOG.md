@@ -6,6 +6,15 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `mcnemarExact` (`./eval`) throws a `RangeError` unless both counts are non-negative integers;
+  before, `-1`, `1.5` or `NaN` returned a meaningless p-value.
+- `bench/cost.js --answerable-share` must be a number from 0 to 1; anything else exits 2 with a message.
+- README: `npm run cost` shows the flags it needs; the trade-off curve is described as an
+  illustration (thresholds are tuned on validation); a plain-English takeaway under the Results
+  table; a stale "scored once" comment in `bench/clinc150/run.js` now matches the History section.
+
 ## [0.2.1] - 2026-11-11
 
 ### Added

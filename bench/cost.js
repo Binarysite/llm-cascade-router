@@ -45,7 +45,12 @@ const expect = report.replies.map((r) => r[1]);
 const mainCall = (promptTokens * mainIn + outputTokens * mainOut) / 1e6;
 const classifierCall = report.costUsd / report.calls;
 const answerable = expect.filter((e) => e !== 'llm').length;
-const share = arg('answerable-share') ?? answerable / expect.length;
+const shareArg = arg('answerable-share');
+if (process.argv.includes('--answerable-share') && !(shareArg !== undefined && shareArg >= 0 && shareArg <= 1)) {
+  console.error('--answerable-share must be a number from 0 to 1 (the share of traffic that has a fixed answer)');
+  process.exit(2);
+}
+const share = shareArg ?? answerable / expect.length;
 const weight = expect.map((e) => (e === 'llm' ? (1 - share) / (expect.length - answerable) : share / answerable));
 
 // Per message of the sample: did each configuration call the classifier, and did the turn reach the main model?

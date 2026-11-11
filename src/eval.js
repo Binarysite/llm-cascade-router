@@ -43,8 +43,12 @@ export function wilson95(k, n) {
  * that in log space, because 0.5 ** n underflows to 0 from n = 1075.
  * @param {number} b
  * @param {number} c
+ * @throws {RangeError} unless both are non-negative integers
  */
 export function mcnemarExact(b, c) {
+  if (!Number.isInteger(b) || !Number.isInteger(c) || b < 0 || c < 0) {
+    throw new RangeError(`mcnemarExact needs two non-negative integer counts, got ${b} and ${c}`);
+  }
   const n = b + c;
   if (n === 0) return 1;
   const k = Math.min(b, c);

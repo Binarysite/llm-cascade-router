@@ -131,6 +131,18 @@ test('cost.js prices wrong fixed answers and says how many saved calls are wrong
     (err) => err.code === 2);
 });
 
+test('cost.js rejects an --answerable-share outside [0, 1] or not a number', async () => {
+  const base = ['--main-in', '1.32', '--main-out', '3.96', '--prompt-tokens', '2000', '--output-tokens', '300',
+    '--main-ms', '3000'];
+  for (const bad of [['--answerable-share', '1.5'], ['--answerable-share', 'abc'], ['--answerable-share', '-0.1'],
+    ['--answerable-share']]) {
+    await assert.rejects(run(process.execPath, [script('bench/cost.js'), ...base, ...bad]),
+      (/** @type {any} */ err) => err.code === 2 && /--answerable-share must be a number from 0 to 1/.test(err.stderr));
+  }
+  const { stdout } = await run(process.execPath, [script('bench/cost.js'), ...base, '--answerable-share', '1']);
+  assert.match(stdout, /It loses money|LLM on every message/);
+});
+
 test('with the dataset, a fresh run reproduces the committed report and chart', { skip: !hasData }, async () => {
   const { stdout } = await run(process.execPath, [script('bench/clinc150/run.js'), '--check'], { timeout: 120_000 });
   assert.match(stdout, /matches a fresh run/);
