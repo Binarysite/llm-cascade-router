@@ -6,6 +6,16 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-11
+
+### Upgrading from 0.1.1
+
+- Avoid words now match exactly; add the variants you relied on typo tolerance for, or set
+  `avoidTypos: true` on the answer. A multi-word avoid entry is now a setup error.
+- `bench/measure.js` is gone from the package: import `measure`, `format`, `createMockLlm`
+  and `wilson95` from `llm-cascade-router/eval`, and pass `build`.
+- A `timeoutMs` above 2147483647 is now a setup error.
+
 ### Added
 
 - **`llm-cascade-router/openai-compatible`**: `createOpenAiCompatibleClassifier` and
@@ -135,6 +145,7 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Type declarations checked against the code, a dependency-free lint, and CI on Node 22 and
   24.
 
-[Unreleased]: https://github.com/Binarysite/llm-cascade-router/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Binarysite/llm-cascade-router/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Binarysite/llm-cascade-router/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Binarysite/llm-cascade-router/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Binarysite/llm-cascade-router/releases/tag/v0.1.0
