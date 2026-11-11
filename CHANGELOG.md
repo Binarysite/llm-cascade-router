@@ -6,6 +6,12 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security
+
+- The README drift tooling no longer executes whatever an `<!-- output: ... -->` marker says: only an
+  allowlist of the documented commands runs, with `--` before the script path, a repo-root check and a
+  60 s timeout. `refresh` rejects output that holds a marker or code fence line.
+
 ## [0.2.0] - 2026-11-11
 
 ### Upgrading from 0.1.1
