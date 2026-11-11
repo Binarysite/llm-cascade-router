@@ -6,6 +6,8 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-11
+
 ### Added
 
 - `bench/cost.js --wrong-cost USD`: the price of one wrong fixed answer (default 0, always
@@ -189,7 +191,8 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Type declarations checked against the code, a dependency-free lint, and CI on Node 22 and
   24.
 
-[Unreleased]: https://github.com/Binarysite/llm-cascade-router/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Binarysite/llm-cascade-router/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/Binarysite/llm-cascade-router/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Binarysite/llm-cascade-router/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Binarysite/llm-cascade-router/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Binarysite/llm-cascade-router/releases/tag/v0.1.0
