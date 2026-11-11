@@ -16,8 +16,11 @@ JSON.
 - **Stopwords:** a fixed list of English function words in `setup.js`, written before any
   run. No synonyms and no avoid words.
 - **Thresholds** are chosen on the validation split by a rule fixed in `evaluate.js`: the
-  most fixed answers with precision >= 0.98, ties to the stricter point. The test split is
-  scored at those thresholds; the sweep on test shows the trade-off around them.
+  most fixed answers with precision >= 0.98, ties to the stricter point. The rule reads the
+  point estimate, and few val messages get a fixed answer (71 for layers 1-2: 98.6%, 95%
+  interval 92.4% to 99.8%), so `show.js` prints the val precision and interval next to test.
+  The test split is scored at those thresholds; the sweep on test shows the trade-off around
+  them.
 
 ## Files
 
@@ -29,6 +32,7 @@ JSON.
 | `evaluate.js` | Scoring and the selection rule |
 | `run.js` | Local configurations; writes `reports/clinc150.json`; `--check` compares a fresh run |
 | `model.js` | A model in layer 3 on a seeded 2,000-message test sample; needs `DEEPSEEK_API_KEY` |
+| `paired.js` | Paired McNemar tests for the model run, from the report's per-message rows; `--check` compares |
 | `chart.js` | `reports/clinc150-tradeoff.svg` from both reports; `--check` compares |
 | `show.js` | The tables in the README, from the committed reports |
 

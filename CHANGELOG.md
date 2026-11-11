@@ -59,8 +59,9 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **A public out-of-scope benchmark on CLINC150** (`bench/clinc150/`, CC BY 3.0, fetched at a
   pinned commit with SHA-256 checks, not committed). The 15 banking intents get fixed answers;
   the other 135 intents and out-of-scope queries must reach the LLM. Thresholds are chosen on
-  validation, test is scored once: layers 1-2 answer 110 of 450 answerable test questions
-  right with 2 wrong (precision 98.2%, 95% interval 93.7% to 99.5%). Baselines on the same
+  validation and test is scored at the validation-chosen thresholds (re-run once after a
+  floating-point fix that did not move them; see History in `bench/clinc150/README.md`):
+  layers 1-2 answer 110 of 450 answerable test questions right with 2 wrong (precision 98.2%, 95% interval 93.7% to 99.5%). Baselines on the same
   split: a TF-IDF nearest neighbour alone and in layer 3, and `deepseek-flash` alone and in
   layer 3 on a seeded 2,000-message sample (149 of 166 right, 22 wrong at the default
   `minConfidence`; USD 0.13). A sweep of every threshold on test is in `reports/clinc150.json`

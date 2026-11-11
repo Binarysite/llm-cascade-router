@@ -26,14 +26,20 @@ than a model call.
                                                         wrong fixed answers  answered without the main LLM
 sticker shop, in-sample (49, mock in layer 3)           0 of 31              31/49 (63.3%)
 sticker shop, held-out (24, mock in layer 3)            1 of 7               7/24 (29.2%)
-sticker shop, held-out (24, deepseek-flash in layer 3)  2 of 11              11/24 (45.8%), McNemar p = 0.125
+sticker shop, held-out (24, deepseek-flash in layer 3)  2 of 11              11/24 (45.8%)
 CLINC150 test (5500, layers 1-2 only)                   2 of 112             112/5500 (2.0%); 110 of 450 answerable
+
+deepseek-flash against the keyword mock, same 24 held-out messages: 3 more right, 1 more wrong, none the other way;
+not significant (McNemar exact p = 0.25 on right answers).
 ```
 
-The sticker-shop banks are mine and small: the held-out gain from a real model
-(4 messages off the LLM, none the other way) is not significant. CLINC150 is
-public: thresholds chosen on validation, test scored once
-([below](#a-public-benchmark-clinc150)). Full outputs: [docs/RESULTS.md](docs/RESULTS.md).
+The sticker-shop banks are mine and small, so the real model's held-out gain
+over the mock is not significant (the two lines under the table). CLINC150 is
+public: thresholds chosen on validation, where layers 1-2 answered only 71
+messages, and test scored at the validation-chosen thresholds; re-run once after
+a floating-point fix that did not move the thresholds
+([History](bench/clinc150/README.md#history), [below](#a-public-benchmark-clinc150)).
+Full outputs: [docs/RESULTS.md](docs/RESULTS.md).
 
 ## Run it in 30 seconds
 
@@ -148,8 +154,10 @@ that, `route` never rejects. `classify` returns `{ choice, confidence }`
 
 Adapters, all over `fetch`:
 
-- `llm-cascade-router/openai-compatible`: any Chat Completions endpoint. The
-  numbers above went through it.
+- `llm-cascade-router/openai-compatible`: any Chat Completions endpoint. Both
+  real-model runs above went through it: the sticker shop with its default
+  prompt, CLINC150 with custom `instructions` passed to it
+  ([bench/clinc150/model.js](bench/clinc150/model.js)), not the default prompt.
 - `llm-cascade-router/claude`: the Anthropic Messages API. Tested against a fake
   `fetch` only; it has not been run against the live API.
 - `llm-cascade-router/eval`: `measure`, `format`, a counting mock LLM, Wilson
@@ -167,12 +175,12 @@ its SHA-256; `npm run clinc` reruns it. Setup and history:
 
 <!-- output: bench/clinc150/show.js --short -->
 ```text
-CLINC150 test split                 wrong  right        precision, 95% Wilson
-layers 1-2                              2  110/450      98.2% (93.7% to 99.5%)
-cascade, TF-IDF in layer 3              2  124/450      98.4% (94.4% to 99.6%)
-deepseek-flash alone *                 21  149/166      87.6% (81.9% to 91.8%)
-cascade, deepseek-flash in layer 3 *   22  149/166      87.1% (81.3% to 91.3%)
-* on a seeded sample of 2000 of the 5500 test messages, minConfidence 0.8 (untuned)
+CLINC150 test split                   wrong  right    precision, 95% Wilson   on val (right/answered)
+layers 1-2                                2  110/450  98.2% (93.7% to 99.5%)  98.6% (92.4% to 99.8%), 70/71
+cascade, TF-IDF in layer 3                2  124/450  98.4% (94.4% to 99.6%)  98.6% (92.5% to 99.8%), 71/72
+deepseek-flash alone *                   21  149/166  87.6% (81.9% to 91.8%)  -
+cascade, deepseek-flash in layer 3 *     22  149/166  87.1% (81.3% to 91.3%)  -
+* on a seeded sample of 2000 of the 5500 test messages, minConfidence 0.8 (untuned, no val calls)
 ```
 
 ![Answerable messages answered right against wrong fixed answers per 1,000 turns, one line per configuration and one point per threshold](reports/clinc150-tradeoff.svg)
@@ -183,6 +191,12 @@ cascade, deepseek-flash in layer 3 *   22  149/166      87.1% (81.3% to 91.3%)
 - **A model in layer 3** finds most answerable questions and pays in wrong
   answers, mostly to messages that had to reach the LLM. Its threshold is the
   untuned default; the curve shows the trade-off a tuned one would pick from.
+  Once it is there, layers 1-2 add no right answers (149 either way) and one
+  wrong one; they cut cost and latency only
+  ([paired numbers](docs/RESULTS.md#clinc150-in-full)).
+- **Validation is thin**: the 0.98 rule reads a point estimate on 71 answered
+  val messages for layers 1-2, whose 95% interval reaches down to 92.4%; the
+  `on val` column shows it next to test.
 - **`npm run cost`** gives dollars per 1,000 turns, p50/p95 latency and the
   main-call price below which the model in layer 3 loses money
   ([example](docs/RESULTS.md#cost-per-1000-turns)).

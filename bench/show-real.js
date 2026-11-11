@@ -18,11 +18,14 @@ const rows = [
     return `${pct(f.right, f.given)} (${lo} to ${hi})`;
   }],
   ['right fixed answers', (b) => String(b.realModel.fixedAnswers.right)],
+  ['  vs mock (only one right)', (b) => {
+    const v = b.realModel.versusKeywordMock.right;
+    return `${v.onlyModel} / ${v.onlyMock}, McNemar p = ${v.mcnemarP}`;
+  }],
   ['escalated (cost a call)', (b) => String(b.realModel.escalated.length)],
   ['answered without the LLM', (b) => share(b.realModel)],
   ['  with the keyword mock', (b) => share(b.keywordMock)],
   ['  with no classifier', (b) => share(b.withoutClassifier)],
-  ['  McNemar p, model vs mock', (b) => String(b.realModel.versusKeywordMock.answeredWithoutMainLlm.mcnemarP)],
   ['classifier calls', (b) => String(b.realModel.calls)],
   ['  answers right / wrong', (b) => `${b.realModel.classifierRight} / ${b.realModel.classifierWrong}`],
   ['  unknown ids / errors', (b) => `${b.realModel.unknownChoices} / ${b.realModel.errors}`],

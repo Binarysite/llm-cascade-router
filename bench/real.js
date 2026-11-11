@@ -137,8 +137,11 @@ for (const [name, bank] of Object.entries(banks)) {
     + `(n ${lat.n}); added on escalated turns p50 ${esc.p50} ms, `
     + `${esc.p95 === null ? `max ${esc.max}` : `p95 ${esc.p95}`} ms (n ${esc.n})`);
   console.log(`tokens ${JSON.stringify(tokens)}, errors ${stats.errors}, cost USD ${usd.toFixed(6)}`);
+  const vr = versusMock.right;
+  console.log(`vs keyword mock, right fixed answers: ${vr.onlyModel} only by the model, `
+    + `${vr.onlyMock} only by the mock, McNemar exact p = ${vr.mcnemarP}`);
   console.log(`vs keyword mock, answered without the main LLM: ${v.onlyModel} only by the model, `
-    + `${v.onlyMock} only by the mock, McNemar exact p = ${v.mcnemarP}\n`);
+    + `${v.onlyMock} only by the mock (a right or a wrong answer counts the same here)\n`);
   if (ledger.stopped) break;
 }
 result.servedModels = [...served].sort();
