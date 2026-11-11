@@ -24,6 +24,7 @@ export function createRouter(config) {
     synonyms: cfg.synonyms,
     stopwords: cfg.stopwords,
     typoTolerance: cfg.score.typoTolerance,
+    answers: cfg.answers,
   });
   /** @type {import('./layers/types.js').Layer[]} */
   const layers = [createExactLayer(cfg), createScoreLayer(cfg, vocabulary)];
@@ -73,13 +74,15 @@ export function createRouter(config) {
     // May be '' for a message of only emoji or punctuation: the local layers
     // then miss and the injected layers still get the raw message.
     const normalized = normalize(message);
+    const tokens = normalized ? normalized.split(' ') : [];
+    const avoidWords = vocabulary.avoidWords(tokens);
 
     for (const layer of layers) {
       if (signal?.aborted) return fallback('aborted by caller');
       const t0 = performance.now();
       let out;
       try {
-        out = await layer.run({ message, normalized, context, signal });
+        out = await layer.run({ message, normalized, tokens, avoidWords, context, signal });
       } catch (err) {
         if (err instanceof CallerAbortError) {
           trace.push({ layer: layer.name, outcome: 'aborted', reason: err.message, latencyMs: ms(t0) });
