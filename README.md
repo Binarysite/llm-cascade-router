@@ -198,7 +198,9 @@ cascade, deepseek-flash in layer 3 *     22  149/166  87.1% (81.3% to 91.3%)  -
   val messages for layers 1-2, whose 95% interval reaches down to 92.4%; the
   `on val` column shows it next to test.
 - **`npm run cost`** gives dollars per 1,000 turns, p50/p95 latency and the
-  main-call price below which the model in layer 3 loses money
+  main-call price below which the model in layer 3 loses money. A wrong fixed
+  answer skips a main call too: the output says how many saved calls are wrong
+  answers, and `--wrong-cost` prices them
   ([example](docs/RESULTS.md#cost-per-1000-turns)).
 
 ## Measure your own messages

@@ -171,26 +171,32 @@ model run, and a main model you describe. Here the main model is priced like
 `deepseek-v4-pro` at peak hours (USD 1.32 input, 3.96 output per million tokens,
 from DeepSeek's pricing page on 2026-11-11), with a 2,000-token prompt, 300
 output tokens and 3 s per call. Those four numbers are assumptions, not
-measurements.
+measurements. A wrong fixed answer also skips a main call, so the output says
+how many of the saved calls are wrong answers, and `--wrong-cost` (default 0,
+always printed) prices each one.
 
 <!-- output: bench/cost.js --main-in 1.32 --main-out 3.96 --prompt-tokens 2000 --output-tokens 300 --main-ms 3000 -->
 ```text
 main model call: USD 0.00383 (2000 in, 300 out at 1.32 / 3.96 per M), 3000 ms; classifier call: USD 0.000066 measured (deepseek-flash)
 traffic with a fixed answer: 8.3% (sample: 166/2000); layer 2 at minScore 0.85, minMargin 0.15 (chosen on val)
+wrong fixed answer: USD 0 each (--wrong-cost); 0 leaves them unpriced
 
-configuration                          USD per 1k turns  main calls  classifier calls  p50 ms  p95 ms
-LLM on every message                              3.828        1000                 0    3000    3000
-layers 1-2, then LLM                              3.740         977                 0    3000    3000
-model classifier on every message                 3.568         915              1000    4077    4415
-cascade: layers 1-2, model in layer 3             3.565         914               977    4076    4414
+configuration                          USD per 1k turns  main calls  classifier calls  wrong  p50 ms  p95 ms
+LLM on every message                              3.828        1000                 0    0.0    3000    3000
+layers 1-2, then LLM                              3.740         977                 0    0.5    3000    3000
+model classifier on every message                 3.568         915              1000   10.5    4077    4415
+cascade: layers 1-2, model in layer 3             3.565         914               977   11.0    4076    4414
 
-Adding the model in layer 3 to layers 1-2 saves 62 main calls per 1k turns for 977 classifier calls.
+Adding the model in layer 3 to layers 1-2: 62.5 saved calls per 1k turns, of which 10.5 are wrong answers,
+for 977 classifier calls; 10.5 more wrong fixed answers in all.
 It loses money when one main call costs less than USD 0.00102 (here: USD 0.00383, so it saves money).
-Wrong fixed answers are not priced here; read them in the CLINC150 table.
+At this main-call price it loses money once a wrong fixed answer costs more than USD 0.01669.
 ```
 
 With CLINC150's mix (8.3% of traffic has a fixed answer), the model in layer 3
-saves 6% of main calls and adds about 1.1 s to the median turn. The same run
+saves 6% of main calls and adds about 1.1 s to the median turn, but 10.5 of its
+62.5 saved calls per 1k turns are wrong fixed answers: at this main-call price
+it loses money once a wrong answer costs you more than about USD 0.017. The same run
 with `--answerable-share 0.5` shows the effect of a mix with more repeat
 questions:
 
@@ -198,16 +204,41 @@ questions:
 ```text
 main model call: USD 0.00383 (2000 in, 300 out at 1.32 / 3.96 per M), 3000 ms; classifier call: USD 0.000066 measured (deepseek-flash)
 traffic with a fixed answer: 50.0% (sample: 166/2000); layer 2 at minScore 0.85, minMargin 0.15 (chosen on val)
+wrong fixed answer: USD 0 each (--wrong-cost); 0 leaves them unpriced
 
-configuration                          USD per 1k turns  main calls  classifier calls  p50 ms  p95 ms
-LLM on every message                              3.828        1000                 0    3000    3000
-layers 1-2, then LLM                              3.298         861                 0    3000    3000
-model classifier on every message                 2.112         535              1000    3822    4366
-cascade: layers 1-2, model in layer 3             2.091         532               861    3814    4356
+configuration                          USD per 1k turns  main calls  classifier calls  wrong  p50 ms  p95 ms
+LLM on every message                              3.828        1000                 0    0.0    3000    3000
+layers 1-2, then LLM                              3.298         861                 0    3.0    3000    3000
+model classifier on every message                 2.112         535              1000   16.7    3822    4366
+cascade: layers 1-2, model in layer 3             2.091         532               861   19.7    3814    4356
 
-Adding the model in layer 3 to layers 1-2 saves 330 main calls per 1k turns for 861 classifier calls.
+Adding the model in layer 3 to layers 1-2: 329.9 saved calls per 1k turns, of which 16.7 are wrong answers,
+for 861 classifier calls; 16.7 more wrong fixed answers in all.
 It loses money when one main call costs less than USD 0.00017 (here: USD 0.00383, so it saves money).
-Wrong fixed answers are not priced here; read them in the CLINC150 table.
+At this main-call price it loses money once a wrong fixed answer costs more than USD 0.07232.
+```
+
+The default mix again, with USD 0.05 per wrong fixed answer, an example value
+you replace with your own (a refund, a ticket, a lost sale), not a measurement.
+At that price the cascade with the model costs more per 1k turns than sending
+every message to the LLM:
+
+<!-- output: bench/cost.js --main-in 1.32 --main-out 3.96 --prompt-tokens 2000 --output-tokens 300 --main-ms 3000 --wrong-cost 0.05 -->
+```text
+main model call: USD 0.00383 (2000 in, 300 out at 1.32 / 3.96 per M), 3000 ms; classifier call: USD 0.000066 measured (deepseek-flash)
+traffic with a fixed answer: 8.3% (sample: 166/2000); layer 2 at minScore 0.85, minMargin 0.15 (chosen on val)
+wrong fixed answer: USD 0.05 each (--wrong-cost)
+
+configuration                          USD per 1k turns  main calls  classifier calls  wrong  p50 ms  p95 ms
+LLM on every message                              3.828        1000                 0    0.0    3000    3000
+layers 1-2, then LLM                              3.765         977                 0    0.5    3000    3000
+model classifier on every message                 4.093         915              1000   10.5    4077    4415
+cascade: layers 1-2, model in layer 3             4.115         914               977   11.0    4076    4414
+
+Adding the model in layer 3 to layers 1-2: 62.5 saved calls per 1k turns, of which 10.5 are wrong answers,
+for 977 classifier calls; 10.5 more wrong fixed answers in all.
+It loses money when one main call costs less than USD 0.00942 (here: USD 0.00383, so it LOSES money), at USD 0.05 per wrong fixed answer.
+At this main-call price it loses money once a wrong fixed answer costs more than USD 0.01669.
 ```
 
 ## Your own messages

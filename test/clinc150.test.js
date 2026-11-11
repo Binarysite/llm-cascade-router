@@ -111,6 +111,26 @@ test('show.js and cost.js read the committed reports without the dataset', async
   await assert.rejects(run(process.execPath, [script('bench/cost.js')]), (err) => err.code === 2);
 });
 
+test('cost.js prices wrong fixed answers and says how many saved calls are wrong answers', async () => {
+  const base = ['--main-in', '1.32', '--main-out', '3.96', '--prompt-tokens', '2000', '--output-tokens', '300',
+    '--main-ms', '3000'];
+  const at = async (/** @type {string[]} */ extra) => (await run(process.execPath, [script('bench/cost.js'), ...base,
+    ...extra])).stdout;
+  const usd = (/** @type {string} */ out, /** @type {string} */ name) => Number(
+    out.split('\n').find((l) => l.startsWith(name))?.slice(name.length).trim().split(/\s+/)[0]);
+  const free = await at([]);
+  assert.match(free, /wrong fixed answer: USD 0 each \(--wrong-cost\)/);
+  assert.match(free, /62\.5 saved calls per 1k turns, of which 10\.5 are wrong answers,/);
+  const priced = await at(['--wrong-cost', '0.01']);
+  assert.match(priced, /wrong fixed answer: USD 0\.01 each \(--wrong-cost\)/);
+  const cascade = 'cascade: layers 1-2, model in layer 3';
+  // 22 wrong of 2,000 sampled messages: 11 per 1k turns, at USD 0.01 each.
+  assert.ok(Math.abs(usd(priced, cascade) - usd(free, cascade) - 0.11) < 0.0015);
+  assert.ok(Math.abs(usd(priced, 'LLM on every message') - usd(free, 'LLM on every message')) < 1e-9);
+  await assert.rejects(run(process.execPath, [script('bench/cost.js'), ...base, '--wrong-cost', '-1']),
+    (err) => err.code === 2);
+});
+
 test('with the dataset, a fresh run reproduces the committed report and chart', { skip: !hasData }, async () => {
   const { stdout } = await run(process.execPath, [script('bench/clinc150/run.js'), '--check'], { timeout: 120_000 });
   assert.match(stdout, /matches a fresh run/);
