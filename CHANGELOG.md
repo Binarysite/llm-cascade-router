@@ -23,6 +23,11 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   whose avoid words were "change" and "charged".
 - Setup rejects an avoid entry of more than one word (it used to veto on each word alone).
 - Layer 2 reports `margin` (top score minus the runner-up's) in its trace step.
+- An error thrown by `classify` or `generate` reaches the trace as its name and at most 200
+  characters of its message; an unknown classifier choice is cut to 60 characters.
+- `createClaudeLlm` sends earlier turns passed as `context.messages`.
+- `validateConfig` is typed `(config: unknown) => NormalizedConfig`, and the config types
+  accept readonly arrays. `npm run typecheck` runs `strict` on `src/`.
 
 ### Fixed
 
@@ -30,6 +35,9 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   answers before ranking, so "what do you charge for shipping" got the international answer
   at 0.5 with no competitor. Vetoed answers are now ranked: a vetoed best answer is a miss,
   and a vetoed runner-up still counts for the margin. The message is in the in-sample bank.
+- A `timeoutMs` above 2147483647 is rejected; Node clamped it to 1 ms, timing out every call.
+- `validateConfig` now freezes the `answers` array, as documented.
+- A `"__proto__"` synonym group (possible from `JSON.parse`) was silently dropped; it is kept.
 - A 20,000-word message took about 240 ms in layer 2; it is now skipped after one split when
   it has more than 4 x `maxTokens` words. The avoid check builds its word set once per turn.
 

@@ -23,6 +23,10 @@ export interface ClaudeLlmOutput {
   [key: string]: unknown;
 }
 
+/**
+ * The LLM slot. Earlier turns can be passed as `context.messages`:
+ * `[{ role: 'user' | 'assistant', content: string }]`; without them the call is single-turn.
+ */
 export function createClaudeLlm(
   options: ClientOptions & { system?: string; maxTokens?: number },
 ): (input: LlmInput) => Promise<ClaudeLlmOutput>;

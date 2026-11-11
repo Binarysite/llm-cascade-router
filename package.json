@@ -37,7 +37,7 @@
     "measure": "node bin/cascade.js",
     "coverage": "node --test --experimental-test-coverage --test-coverage-include='src/**' --test-coverage-lines=95 --test-coverage-branches=90",
     "lint": "node scripts/lint.mjs",
-    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.strict.json"
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.tools.json && tsc -p tsconfig.strict.json"
   },
   "engines": {
     "node": ">=22"

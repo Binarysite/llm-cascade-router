@@ -8,11 +8,10 @@ import { withTimeout } from '../timeout.js';
  * so tool calls or token usage are not lost. A throw, a timeout or an empty reply is not passed on to the
  * user: the router answers with the configured fallback instead.
  *
- * @param {{ llm: { generate: Function, timeoutMs: number } }} config
+ * @param {{ generate: import('../../index.js').Generate, timeoutMs: number }} llm
  * @returns {import('./types.js').Layer}
  */
-export function createLlmLayer({ llm }) {
-  const { generate, timeoutMs } = llm;
+export function createLlmLayer({ generate, timeoutMs }) {
   return {
     name: 'llm',
     async run({ message, context, signal }) {

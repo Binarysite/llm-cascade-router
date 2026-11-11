@@ -30,8 +30,10 @@ export async function withTimeout(layer, fn, timeoutMs, parent) {
   // An abort that already happened fires no 'abort' event, so check it first.
   if (parent?.aborted) throw new CallerAbortError();
   const controller = new AbortController();
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
   let timer;
-  let onParentAbort;
+  /** @type {() => void} */
+  let onParentAbort = () => {};
   const stop = new Promise((_, reject) => {
     timer = setTimeout(() => {
       const err = new LayerTimeoutError(layer, timeoutMs);
