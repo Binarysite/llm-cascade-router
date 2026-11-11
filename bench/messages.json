@@ -37,6 +37,7 @@
   { "text": "Where is my order #10482?", "expect": "llm" },
   { "text": "My stickers arrived damaged, I want a refund", "expect": "llm" },
   { "text": "I was charged twice for shipping", "expect": "llm" },
+  { "text": "what do you charge for shipping", "expect": "shipping-cost" },
   { "text": "There's a typo on my proof, can you fix it?", "expect": "llm" },
   { "text": "How much would 500 die-cut stickers cost?", "expect": "llm" },
   { "text": "Can you design a logo for my band?", "expect": "llm" },

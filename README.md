@@ -52,7 +52,7 @@ sticker-shop example: keyword mock classifier, mock LLM
 
 > My stickers arrived damaged, I want a refund
   exact      miss  no phrase matches the normalized message
-  score      miss  best international 0.286 via "do you ship internationally", next sizes 0.286, below minScore 0.5
+  score      miss  best shipping-time 0.286 via "how fast do you ship", next shipping-cost 0.286; shipping-time vetoed by avoid word "damaged"
   classifier miss  shipping-time vetoed by avoid word "damaged"
   llm        hit   no cheaper layer answered
   answered by llm, LLM called
@@ -92,24 +92,24 @@ fixed answer sent to the wrong question is worse than a model call.
 sticker-shop example: keyword mock classifier, mock LLM
 
 == in-sample: bench/messages.json, written with the vocabulary ==
-48 invented messages, 32 with a fixed answer and 16 that need the model
+49 invented messages, 33 with a fixed answer and 16 that need the model
 
 layer       turns  share   right  wrong  escalated
-exact          10   20.8%      10      0          -
-score          15   31.3%      15      0          -
-classifier      6   12.5%       6      0          -
-llm            17   35.4%      16      -          1
+exact          10   20.4%      10      0          -
+score          15   30.6%      15      0          -
+classifier      6   12.2%       6      0          -
+llm            18   36.7%      16      -          2
 fallback        0    0.0%       0      -          0
 
-answered without the main LLM: 31/48 (64.6%)
-  95% interval (Wilson): 50.4% to 76.6%
-ceiling: 32/48 (66.7%), the messages that have a fixed answer
-LLM calls: 17, against 48 if every message went to the model
-classifier calls: 23, answers: 6 (keyword mock here, not a model)
-classifier break-even: 6/23 = 0.26 of a main LLM call
+answered without the main LLM: 31/49 (63.3%)
+  95% interval (Wilson): 49.3% to 75.3%
+ceiling: 33/49 (67.3%), the messages that have a fixed answer
+LLM calls: 18, against 49 if every message went to the model
+classifier calls: 24, answers: 6 (keyword mock here, not a model)
+classifier break-even: 6/24 = 0.25 of a main LLM call
   (a model classifier saves money only if each of its calls costs less than that)
 wrong fixed answers: 0
-fixed-answer questions that still reached the LLM: 1
+fixed-answer questions that still reached the LLM: 2
 
 == held-out: bench/held-out.json, written without looking at the vocabulary ==
 24 invented messages, 11 with a fixed answer and 13 that need the model
@@ -133,10 +133,10 @@ fixed-answer questions that still reached the LLM: 5
   WRONG score: "how long does shipping take and can I pay with apple pay?" -> shipping-time, expected llm
 ```
 
-**In-sample.** I wrote these 48 messages and the vocabulary that matches them,
-so 0 wrong and 64.6% measure the mechanism on my own words, not on new traffic.
-31 of the 32 messages with a fixed answer skipped the main LLM. The one
-"escalated" message cost a call; it is not an error. The bench exits 1 on a
+**In-sample.** I wrote these 49 messages and the vocabulary that matches them,
+so 0 wrong and 63.3% measure the mechanism on my own words, not on new traffic.
+31 of the 33 messages with a fixed answer skipped the main LLM. The two
+"escalated" messages cost a call each; they are not errors. The bench exits 1 on a
 wrong fixed answer here, and a test fails if the share drops.
 
 **Held-out.** I wrote these 24 messages for the same shop without looking at

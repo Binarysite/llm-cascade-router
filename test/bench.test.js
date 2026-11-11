@@ -27,7 +27,7 @@ test('--json reports both sets, and only the in-sample set decides the exit code
   // even if the held-out set has wrong fixed answers.
   const { stdout } = await run(process.execPath, [script, '--json']);
   const { inSample, heldOut } = JSON.parse(stdout);
-  assert.equal(inSample.total, 48);
+  assert.equal(inSample.total, 49);
   assert.equal(inSample.wrong.length, 0);
   assert.equal(heldOut.total, 24);
   assert.equal(heldOut.answeredWithoutMainLlm + heldOut.llmCalls, heldOut.total);
@@ -83,6 +83,6 @@ test('wilson95 gives the 95% interval and the bench prints it under the share', 
   const { stdout } = await run(process.execPath, [script]);
   const share = (k, n, pct, lo, hi) => new RegExp(
     `answered without the main LLM: ${k}/${n} \\(${pct}%\\)\\n {2}95% interval \\(Wilson\\): ${lo}% to ${hi}%`);
-  assert.match(stdout, share(31, 48, '64.6', '50.4', '76.6'));
+  assert.match(stdout, share(31, 49, '63.3', '49.3', '75.3'));
   assert.match(stdout, share(7, 24, '29.2', '14.9', '49.2'));
 });

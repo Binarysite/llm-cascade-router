@@ -88,10 +88,11 @@ test('bench coverage does not silently drop: floors on the cheap share and on es
   const script = new URL('../bench/run.js', import.meta.url).pathname;
   const { stdout } = await run(process.execPath, [script, '--json']);
   const report = JSON.parse(stdout).inSample;
-  assert.equal(report.total, 48);
+  assert.equal(report.total, 49);
   const cheap = report.answeredWithoutMainLlm;
   assert.ok(cheap >= 31, `answered without the main LLM fell to ${cheap}`);
-  assert.ok(report.escalated.length <= 1, `escalations rose to ${report.escalated.length}`);
+  // 2 since "what do you charge for shipping" was added: it must escalate, not get the international answer.
+  assert.ok(report.escalated.length <= 2, `escalations rose to ${report.escalated.length}`);
   assert.equal(report.classifierCalls, report.total - report.byLayer.exact.turns - report.byLayer.score.turns);
   assert.equal(report.classifierAnswers, report.byLayer.classifier.turns);
   assert.equal(report.breakEven, Number((report.classifierAnswers / report.classifierCalls).toFixed(3)));
