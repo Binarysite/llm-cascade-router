@@ -1,0 +1,596 @@
+{
+  "dataset": {
+    "name": "CLINC150 (data_full)",
+    "source": "https://github.com/clinc/oos-eval/tree/828f8093932c8fe6ca7936c3d2e52903b1c523de/data",
+    "license": "CC BY 3.0",
+    "sha256": {
+      "data_full.json": "36923c3705a59e08fe9c3883d8bc2dd966ef93e22cb78ac41171782a698d56e0",
+      "domains.json": "b947b579d3b8e74b06f93b01083d8efaff2888b43a3e362533bd88a6e1211b3a"
+    }
+  },
+  "setup": {
+    "answerDomain": "banking",
+    "answers": [
+      "account_blocked",
+      "balance",
+      "bill_balance",
+      "bill_due",
+      "freeze_account",
+      "interest_rate",
+      "min_payment",
+      "order_checks",
+      "pay_bill",
+      "pin_change",
+      "report_fraud",
+      "routing",
+      "spending_history",
+      "transactions",
+      "transfer"
+    ],
+    "phrasesPerAnswer": [
+      100,
+      99,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "stopwords": 86,
+    "mustEscalate": "the 135 intents of the other 9 domains, and the out-of-scope queries",
+    "splits": {
+      "train": 15100,
+      "val": 3100,
+      "test": 5500
+    }
+  },
+  "selection": {
+    "rule": "on val: the most fixed answers with precision >= 0.98; ties go to the stricter point",
+    "layers12": {
+      "minScore": 0.85,
+      "minMargin": 0.15,
+      "rule": "most answers with precision >= 0.98",
+      "val": {
+        "n": 3100,
+        "answerable": 300,
+        "answered": 71,
+        "right": 70,
+        "wrong": 1,
+        "wrongIntent": 0,
+        "wrongMustEscalate": 1,
+        "escalatedAnswerable": 230,
+        "toLlm": 3029,
+        "shareAnsweredWithoutLlm": 0.023,
+        "coverageOfAnswerable": 0.233,
+        "precision": 0.986,
+        "precisionInterval95": [
+          0.924,
+          0.998
+        ],
+        "wrongPer1000Turns": 0.32,
+        "escalationRate": 0.977
+      }
+    },
+    "tfidf": {
+      "minConfidence": 1,
+      "rule": "most answers with precision >= 0.98",
+      "val": {
+        "n": 3100,
+        "answerable": 300,
+        "answered": 28,
+        "right": 28,
+        "wrong": 0,
+        "wrongIntent": 0,
+        "wrongMustEscalate": 0,
+        "escalatedAnswerable": 272,
+        "toLlm": 3072,
+        "shareAnsweredWithoutLlm": 0.009,
+        "coverageOfAnswerable": 0.093,
+        "precision": 1,
+        "precisionInterval95": [
+          0.879,
+          1
+        ],
+        "wrongPer1000Turns": 0,
+        "escalationRate": 0.991
+      }
+    },
+    "cascadeTfidf": {
+      "minConfidence": 1,
+      "rule": "most answers with precision >= 0.98",
+      "val": {
+        "n": 3100,
+        "answerable": 300,
+        "answered": 72,
+        "right": 71,
+        "wrong": 1,
+        "wrongIntent": 0,
+        "wrongMustEscalate": 1,
+        "escalatedAnswerable": 229,
+        "toLlm": 3028,
+        "shareAnsweredWithoutLlm": 0.023,
+        "coverageOfAnswerable": 0.237,
+        "precision": 0.986,
+        "precisionInterval95": [
+          0.925,
+          0.998
+        ],
+        "wrongPer1000Turns": 0.32,
+        "escalationRate": 0.977
+      }
+    }
+  },
+  "test": {
+    "LLM on every message": {
+      "n": 5500,
+      "answerable": 450,
+      "answered": 0,
+      "right": 0,
+      "wrong": 0,
+      "wrongIntent": 0,
+      "wrongMustEscalate": 0,
+      "escalatedAnswerable": 450,
+      "toLlm": 5500,
+      "shareAnsweredWithoutLlm": 0,
+      "coverageOfAnswerable": 0,
+      "precision": null,
+      "precisionInterval95": [
+        0,
+        0
+      ],
+      "wrongPer1000Turns": 0,
+      "escalationRate": 1
+    },
+    "layers 1-2, then LLM": {
+      "n": 5500,
+      "answerable": 450,
+      "answered": 112,
+      "right": 110,
+      "wrong": 2,
+      "wrongIntent": 1,
+      "wrongMustEscalate": 1,
+      "escalatedAnswerable": 339,
+      "toLlm": 5388,
+      "shareAnsweredWithoutLlm": 0.02,
+      "coverageOfAnswerable": 0.244,
+      "precision": 0.982,
+      "precisionInterval95": [
+        0.937,
+        0.995
+      ],
+      "wrongPer1000Turns": 0.36,
+      "escalationRate": 0.98
+    },
+    "TF-IDF nearest neighbour alone, then LLM": {
+      "n": 5500,
+      "answerable": 450,
+      "answered": 60,
+      "right": 60,
+      "wrong": 0,
+      "wrongIntent": 0,
+      "wrongMustEscalate": 0,
+      "escalatedAnswerable": 390,
+      "toLlm": 5440,
+      "shareAnsweredWithoutLlm": 0.011,
+      "coverageOfAnswerable": 0.133,
+      "precision": 1,
+      "precisionInterval95": [
+        0.94,
+        1
+      ],
+      "wrongPer1000Turns": 0,
+      "escalationRate": 0.989
+    },
+    "cascade: layers 1-2, TF-IDF in layer 3, then LLM": {
+      "n": 5500,
+      "answerable": 450,
+      "answered": 126,
+      "right": 124,
+      "wrong": 2,
+      "wrongIntent": 1,
+      "wrongMustEscalate": 1,
+      "escalatedAnswerable": 325,
+      "toLlm": 5374,
+      "shareAnsweredWithoutLlm": 0.023,
+      "coverageOfAnswerable": 0.276,
+      "precision": 0.984,
+      "precisionInterval95": [
+        0.944,
+        0.996
+      ],
+      "wrongPer1000Turns": 0.36,
+      "escalationRate": 0.977
+    }
+  },
+  "sweepOnTest": {
+    "layers12": [
+      {
+        "minScore": 0.3,
+        "minMargin": 0.15,
+        "answered": 776,
+        "wrong": 509,
+        "coverageOfAnswerable": 0.593,
+        "wrongPer1000Turns": 92.55,
+        "precision": 0.344
+      },
+      {
+        "minScore": 0.35,
+        "minMargin": 0.15,
+        "answered": 688,
+        "wrong": 422,
+        "coverageOfAnswerable": 0.591,
+        "wrongPer1000Turns": 76.73,
+        "precision": 0.387
+      },
+      {
+        "minScore": 0.4,
+        "minMargin": 0.15,
+        "answered": 679,
+        "wrong": 413,
+        "coverageOfAnswerable": 0.591,
+        "wrongPer1000Turns": 75.09,
+        "precision": 0.392
+      },
+      {
+        "minScore": 0.45,
+        "minMargin": 0.15,
+        "answered": 499,
+        "wrong": 237,
+        "coverageOfAnswerable": 0.582,
+        "wrongPer1000Turns": 43.09,
+        "precision": 0.525
+      },
+      {
+        "minScore": 0.5,
+        "minMargin": 0.15,
+        "answered": 495,
+        "wrong": 233,
+        "coverageOfAnswerable": 0.582,
+        "wrongPer1000Turns": 42.36,
+        "precision": 0.529
+      },
+      {
+        "minScore": 0.55,
+        "minMargin": 0.15,
+        "answered": 360,
+        "wrong": 104,
+        "coverageOfAnswerable": 0.569,
+        "wrongPer1000Turns": 18.91,
+        "precision": 0.711
+      },
+      {
+        "minScore": 0.6,
+        "minMargin": 0.15,
+        "answered": 306,
+        "wrong": 60,
+        "coverageOfAnswerable": 0.547,
+        "wrongPer1000Turns": 10.91,
+        "precision": 0.804
+      },
+      {
+        "minScore": 0.65,
+        "minMargin": 0.15,
+        "answered": 283,
+        "wrong": 48,
+        "coverageOfAnswerable": 0.522,
+        "wrongPer1000Turns": 8.73,
+        "precision": 0.83
+      },
+      {
+        "minScore": 0.7,
+        "minMargin": 0.15,
+        "answered": 217,
+        "wrong": 18,
+        "coverageOfAnswerable": 0.442,
+        "wrongPer1000Turns": 3.27,
+        "precision": 0.917
+      },
+      {
+        "minScore": 0.75,
+        "minMargin": 0.15,
+        "answered": 196,
+        "wrong": 16,
+        "coverageOfAnswerable": 0.4,
+        "wrongPer1000Turns": 2.91,
+        "precision": 0.918
+      },
+      {
+        "minScore": 0.8,
+        "minMargin": 0.15,
+        "answered": 162,
+        "wrong": 3,
+        "coverageOfAnswerable": 0.353,
+        "wrongPer1000Turns": 0.55,
+        "precision": 0.981
+      },
+      {
+        "minScore": 0.85,
+        "minMargin": 0.15,
+        "answered": 112,
+        "wrong": 2,
+        "coverageOfAnswerable": 0.244,
+        "wrongPer1000Turns": 0.36,
+        "precision": 0.982
+      },
+      {
+        "minScore": 0.9,
+        "minMargin": 0.15,
+        "answered": 65,
+        "wrong": 0,
+        "coverageOfAnswerable": 0.144,
+        "wrongPer1000Turns": 0,
+        "precision": 1
+      },
+      {
+        "minScore": 0.95,
+        "minMargin": 0.15,
+        "answered": 53,
+        "wrong": 0,
+        "coverageOfAnswerable": 0.118,
+        "wrongPer1000Turns": 0,
+        "precision": 1
+      },
+      {
+        "minScore": 1,
+        "minMargin": 0.15,
+        "answered": 53,
+        "wrong": 0,
+        "coverageOfAnswerable": 0.118,
+        "wrongPer1000Turns": 0,
+        "precision": 1
+      }
+    ],
+    "tfidf": [
+      {
+        "minConfidence": 0.3,
+        "answered": 483,
+        "wrong": 143,
+        "coverageOfAnswerable": 0.756,
+        "wrongPer1000Turns": 26,
+        "precision": 0.704
+      },
+      {
+        "minConfidence": 0.35,
+        "answered": 463,
+        "wrong": 126,
+        "coverageOfAnswerable": 0.749,
+        "wrongPer1000Turns": 22.91,
+        "precision": 0.728
+      },
+      {
+        "minConfidence": 0.4,
+        "answered": 439,
+        "wrong": 105,
+        "coverageOfAnswerable": 0.742,
+        "wrongPer1000Turns": 19.09,
+        "precision": 0.761
+      },
+      {
+        "minConfidence": 0.45,
+        "answered": 422,
+        "wrong": 91,
+        "coverageOfAnswerable": 0.736,
+        "wrongPer1000Turns": 16.55,
+        "precision": 0.784
+      },
+      {
+        "minConfidence": 0.5,
+        "answered": 383,
+        "wrong": 63,
+        "coverageOfAnswerable": 0.711,
+        "wrongPer1000Turns": 11.45,
+        "precision": 0.836
+      },
+      {
+        "minConfidence": 0.55,
+        "answered": 351,
+        "wrong": 47,
+        "coverageOfAnswerable": 0.676,
+        "wrongPer1000Turns": 8.55,
+        "precision": 0.866
+      },
+      {
+        "minConfidence": 0.6,
+        "answered": 315,
+        "wrong": 38,
+        "coverageOfAnswerable": 0.616,
+        "wrongPer1000Turns": 6.91,
+        "precision": 0.879
+      },
+      {
+        "minConfidence": 0.65,
+        "answered": 274,
+        "wrong": 29,
+        "coverageOfAnswerable": 0.544,
+        "wrongPer1000Turns": 5.27,
+        "precision": 0.894
+      },
+      {
+        "minConfidence": 0.7,
+        "answered": 242,
+        "wrong": 22,
+        "coverageOfAnswerable": 0.489,
+        "wrongPer1000Turns": 4,
+        "precision": 0.909
+      },
+      {
+        "minConfidence": 0.75,
+        "answered": 199,
+        "wrong": 13,
+        "coverageOfAnswerable": 0.413,
+        "wrongPer1000Turns": 2.36,
+        "precision": 0.935
+      },
+      {
+        "minConfidence": 0.8,
+        "answered": 158,
+        "wrong": 8,
+        "coverageOfAnswerable": 0.333,
+        "wrongPer1000Turns": 1.45,
+        "precision": 0.949
+      },
+      {
+        "minConfidence": 0.85,
+        "answered": 120,
+        "wrong": 4,
+        "coverageOfAnswerable": 0.258,
+        "wrongPer1000Turns": 0.73,
+        "precision": 0.967
+      },
+      {
+        "minConfidence": 0.9,
+        "answered": 93,
+        "wrong": 2,
+        "coverageOfAnswerable": 0.202,
+        "wrongPer1000Turns": 0.36,
+        "precision": 0.978
+      },
+      {
+        "minConfidence": 0.95,
+        "answered": 70,
+        "wrong": 1,
+        "coverageOfAnswerable": 0.153,
+        "wrongPer1000Turns": 0.18,
+        "precision": 0.986
+      },
+      {
+        "minConfidence": 1,
+        "answered": 60,
+        "wrong": 0,
+        "coverageOfAnswerable": 0.133,
+        "wrongPer1000Turns": 0,
+        "precision": 1
+      }
+    ],
+    "cascadeTfidf": [
+      {
+        "minConfidence": 0.3,
+        "answered": 484,
+        "wrong": 143,
+        "coverageOfAnswerable": 0.758,
+        "wrongPer1000Turns": 26,
+        "precision": 0.705
+      },
+      {
+        "minConfidence": 0.35,
+        "answered": 464,
+        "wrong": 126,
+        "coverageOfAnswerable": 0.751,
+        "wrongPer1000Turns": 22.91,
+        "precision": 0.728
+      },
+      {
+        "minConfidence": 0.4,
+        "answered": 440,
+        "wrong": 105,
+        "coverageOfAnswerable": 0.744,
+        "wrongPer1000Turns": 19.09,
+        "precision": 0.761
+      },
+      {
+        "minConfidence": 0.45,
+        "answered": 423,
+        "wrong": 91,
+        "coverageOfAnswerable": 0.738,
+        "wrongPer1000Turns": 16.55,
+        "precision": 0.785
+      },
+      {
+        "minConfidence": 0.5,
+        "answered": 384,
+        "wrong": 63,
+        "coverageOfAnswerable": 0.713,
+        "wrongPer1000Turns": 11.45,
+        "precision": 0.836
+      },
+      {
+        "minConfidence": 0.55,
+        "answered": 352,
+        "wrong": 47,
+        "coverageOfAnswerable": 0.678,
+        "wrongPer1000Turns": 8.55,
+        "precision": 0.866
+      },
+      {
+        "minConfidence": 0.6,
+        "answered": 318,
+        "wrong": 38,
+        "coverageOfAnswerable": 0.622,
+        "wrongPer1000Turns": 6.91,
+        "precision": 0.881
+      },
+      {
+        "minConfidence": 0.65,
+        "answered": 278,
+        "wrong": 29,
+        "coverageOfAnswerable": 0.553,
+        "wrongPer1000Turns": 5.27,
+        "precision": 0.896
+      },
+      {
+        "minConfidence": 0.7,
+        "answered": 249,
+        "wrong": 22,
+        "coverageOfAnswerable": 0.504,
+        "wrongPer1000Turns": 4,
+        "precision": 0.912
+      },
+      {
+        "minConfidence": 0.75,
+        "answered": 215,
+        "wrong": 14,
+        "coverageOfAnswerable": 0.447,
+        "wrongPer1000Turns": 2.55,
+        "precision": 0.935
+      },
+      {
+        "minConfidence": 0.8,
+        "answered": 179,
+        "wrong": 10,
+        "coverageOfAnswerable": 0.376,
+        "wrongPer1000Turns": 1.82,
+        "precision": 0.944
+      },
+      {
+        "minConfidence": 0.85,
+        "answered": 151,
+        "wrong": 6,
+        "coverageOfAnswerable": 0.322,
+        "wrongPer1000Turns": 1.09,
+        "precision": 0.96
+      },
+      {
+        "minConfidence": 0.9,
+        "answered": 138,
+        "wrong": 4,
+        "coverageOfAnswerable": 0.298,
+        "wrongPer1000Turns": 0.73,
+        "precision": 0.971
+      },
+      {
+        "minConfidence": 0.95,
+        "answered": 129,
+        "wrong": 3,
+        "coverageOfAnswerable": 0.28,
+        "wrongPer1000Turns": 0.55,
+        "precision": 0.977
+      },
+      {
+        "minConfidence": 1,
+        "answered": 126,
+        "wrong": 2,
+        "coverageOfAnswerable": 0.276,
+        "wrongPer1000Turns": 0.36,
+        "precision": 0.984
+      }
+    ]
+  }
+}

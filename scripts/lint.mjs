@@ -7,7 +7,7 @@ import { join, extname } from 'node:path';
 
 const DIRS = ['src', 'test', 'examples', 'bench', 'bin', 'scripts', 'docs', 'typecheck', '.github'];
 const ROOT_FILES = [
-  'README.md', 'CHANGELOG.md', 'SECURITY.md', 'CONTRIBUTING.md',
+  'README.md', 'CHANGELOG.md', 'SECURITY.md', 'CONTRIBUTING.md', 'NOTICE',
   'package.json', 'index.d.ts', 'claude.d.ts', 'eval.d.ts', 'openai-compatible.d.ts',
   'tsconfig.json', 'tsconfig.tools.json', 'tsconfig.strict.json',
 ];
@@ -15,7 +15,10 @@ const MAX_LINE = 120;
 const CODE = new Set(['.js', '.mjs', '.ts', '.yml']);
 const TEXT = new Set(['.js', '.mjs', '.ts', '.json', '.md', '.yml']);
 
+// Downloaded third-party data (bench/clinc150/data, git-ignored) is not ours to lint.
+const SKIP = new Set([join('bench', 'clinc150', 'data')]);
 const walk = (dir) => readdirSync(dir, { withFileTypes: true })
+  .filter((e) => !SKIP.has(join(dir, e.name)))
   .flatMap((e) => (e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)]));
 const files = [...DIRS.filter(existsSync).flatMap(walk), ...ROOT_FILES.filter(existsSync)]
   .filter((f) => TEXT.has(extname(f)));
