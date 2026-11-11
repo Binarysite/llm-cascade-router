@@ -27,6 +27,7 @@ export const ALLOWED_COMMANDS = Object.freeze([
   'bench/clinc150/show.js',
   `bench/cost.js ${COST_ARGS}`,
   `bench/cost.js ${COST_ARGS} --answerable-share 0.5`,
+  `bench/cost.js ${COST_ARGS} --wrong-cost 0.05`,
   'bin/cascade.js',
 ]);
 export const DOCS = ['README.md', 'docs/RESULTS.md'];

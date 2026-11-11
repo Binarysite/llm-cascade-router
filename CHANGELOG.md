@@ -6,6 +6,16 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `bench/cost.js --wrong-cost USD`: the price of one wrong fixed answer (default 0, always
+  printed). A wrong fixed answer also skips a main call, so the cost model used to count it as
+  a saving: it now prints a `wrong` column per 1k turns, "saved calls, of which N are wrong
+  answers", a break-even main-call price that includes the wrong answers, and the wrong-answer
+  cost above which the model in layer 3 loses money. On the CLINC150 mix, 10.5 of the 62.5
+  calls per 1k turns the model saves are wrong answers; past about USD 0.017 per wrong answer
+  it loses money at the example main-call price.
+
 ### Fixed
 
 - `mcnemarExact` returned 0 from 1,075 discordant pairs on, because `0.5 ** n` underflows;
