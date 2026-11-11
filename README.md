@@ -113,7 +113,7 @@ optional functions you inject.
 ## Using it
 
 ```bash
-npm install github:Binarysite/llm-cascade-router#v0.2.0
+npm install github:Binarysite/llm-cascade-router#v0.2.1
 ```
 
 There is no npm package.
@@ -249,7 +249,7 @@ runs, and runs CodeQL.
 The chat agent this comes from is in a live pilot on demo sites for prospective
 clinics; no paying clinic yet. This repo is written from scratch around an
 invented sticker shop. Built with Claude Code; the design decisions and reviews
-are mine. Status: v0.2.0, not on npm. Using it with
+are mine. Status: v0.2.1, not on npm. Using it with
 [agent-eval-harness](docs/agent-eval-harness.md).
 
 Author: Alfredo Rosadilla ([@Binarysite](https://github.com/Binarysite)). MIT license, see [LICENSE](LICENSE);
