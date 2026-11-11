@@ -6,6 +6,11 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The README no longer says the router was extracted from other code; it is written from scratch,
+  copyright AURELIAI SpA.
+
 ### Fixed
 
 - `mcnemarExact` (`./eval`) throws a `RangeError` unless both counts are non-negative integers;
