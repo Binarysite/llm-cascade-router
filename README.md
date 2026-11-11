@@ -32,6 +32,7 @@ npm run ask
 Four messages, one answered by each layer, with the reason each layer gave
 (real output):
 
+<!-- output: examples/sticker-shop/ask.js -->
 ```text
 sticker-shop example: keyword mock classifier, mock LLM
 
@@ -88,6 +89,7 @@ per layer that ran.
 `npm run bench` runs two labelled sets through the example. Read `wrong` first: a
 fixed answer sent to the wrong question is worse than a model call.
 
+<!-- output: bench/run.js -->
 ```text
 sticker-shop example: keyword mock classifier, mock LLM
 
@@ -101,15 +103,15 @@ classifier      6   12.2%       6      0          -
 llm            18   36.7%      16      -          2
 fallback        0    0.0%       0      -          0
 
-answered without the main LLM: 31/49 (63.3%)
-  95% interval (Wilson): 49.3% to 75.3%
-ceiling: 33/49 (67.3%), the messages that have a fixed answer
-LLM calls: 18, against 49 if every message went to the model
-classifier calls: 24, answers: 6 (keyword mock here, not a model)
-classifier break-even: 6/24 = 0.25 of a main LLM call
-  (a model classifier saves money only if each of its calls costs less than that)
-wrong fixed answers: 0
+wrong fixed answers: 0 of 31 given
+  precision 100.0%, 95% interval (Wilson) 89.0% to 100.0%
+answered without the main LLM: 31/49 (63.3%), 95% interval (Wilson) 49.3% to 75.3%
+  ceiling: 33/49 (67.3%), the messages that have a fixed answer
 fixed-answer questions that still reached the LLM: 2
+LLM calls: 18, against 49 if every message went to the model
+classifier: 24 calls, 6 answers, 6 right, 0 wrong (keyword mock here, not a model)
+  break-even: 6 right / 24 calls = 0.25 of a main LLM call
+  (a model classifier saves money only if one call costs less than that; wrong answers cost extra)
 
 == held-out: bench/held-out.json, written without looking at the vocabulary ==
 24 invented messages, 11 with a fixed answer and 13 that need the model
@@ -121,16 +123,16 @@ classifier      0    0.0%       0      0          -
 llm            17   70.8%      12      -          5
 fallback        0    0.0%       0      -          0
 
-answered without the main LLM: 7/24 (29.2%)
-  95% interval (Wilson): 14.9% to 49.2%
-ceiling: 11/24 (45.8%), the messages that have a fixed answer
-LLM calls: 17, against 24 if every message went to the model
-classifier calls: 17, answers: 0 (keyword mock here, not a model)
-classifier break-even: 0/17 = 0.00 of a main LLM call
-  (a model classifier saves money only if each of its calls costs less than that)
-wrong fixed answers: 1
-fixed-answer questions that still reached the LLM: 5
+wrong fixed answers: 1 of 7 given
+  precision 85.7%, 95% interval (Wilson) 48.7% to 97.4%
   WRONG score: "how long does shipping take and can I pay with apple pay?" -> shipping-time, expected llm
+answered without the main LLM: 7/24 (29.2%), 95% interval (Wilson) 14.9% to 49.2%
+  ceiling: 11/24 (45.8%), the messages that have a fixed answer
+fixed-answer questions that still reached the LLM: 5
+LLM calls: 17, against 24 if every message went to the model
+classifier: 17 calls, 0 answers, 0 right, 0 wrong (keyword mock here, not a model)
+  break-even: 0 right / 17 calls = 0.00 of a main LLM call
+  (a model classifier saves money only if one call costs less than that; wrong answers cost extra)
 ```
 
 **In-sample.** I wrote these 49 messages and the vocabulary that matches them,
@@ -166,9 +168,9 @@ does not change the exit code, and I do not edit the vocabulary to make it
 score better: a set you tune on stops being held out
 ([why](docs/DESIGN.md#the-held-out-set)).
 
-**The classifier is not free.** In-sample it ran 23 times to answer 6
+**The classifier is not free.** In-sample it ran 24 times to answer 6
 messages. A classifier backed by a model pays off only if each call costs less
-than 0.26 of a main LLM call. The Claude adapters report `usage` to check that.
+than 0.25 of a main LLM call. The Claude adapters report `usage` to check that.
 
 ### With a real model in layer 3
 
@@ -229,6 +231,7 @@ npm run measure                  # the starter in examples/starter: 10 messages,
 npm run measure -- --config my-config.json --messages my-messages.json --verbose
 ```
 
+<!-- output: bin/cascade.js -->
 ```text
 config: examples/starter/config.json, messages: examples/starter/messages.json (layers 1 and 2, then a counting mock LLM; no classifier, no network)
 10 labelled messages, 7 with a fixed answer and 3 that need the model
@@ -240,13 +243,13 @@ classifier      0    0.0%       0      0          -
 llm             3   30.0%       3      -          0
 fallback        0    0.0%       0      -          0
 
-answered without the main LLM: 7/10 (70.0%)
-  95% interval (Wilson): 39.7% to 89.2%
-ceiling: 7/10 (70.0%), the messages that have a fixed answer
-LLM calls: 3, against 10 if every message went to the model
-classifier: not configured (layers 1 and 2, then the mock LLM)
-wrong fixed answers: 0
+wrong fixed answers: 0 of 7 given
+  precision 100.0%, 95% interval (Wilson) 64.6% to 100.0%
+answered without the main LLM: 7/10 (70.0%), 95% interval (Wilson) 39.7% to 89.2%
+  ceiling: 7/10 (70.0%), the messages that have a fixed answer
 fixed-answer questions that still reached the LLM: 0
+LLM calls: 3, against 10 if every message went to the model
+classifier: not configured
 ```
 
 The starter's answers and messages are copied from the sticker-shop example, and

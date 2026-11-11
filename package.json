@@ -17,14 +17,18 @@
     "./claude": {
       "types": "./claude.d.ts",
       "default": "./src/adapters/claude.js"
+    },
+    "./eval": {
+      "types": "./eval.d.ts",
+      "default": "./src/eval.js"
     }
   },
   "files": [
     "src",
     "bin",
-    "bench/measure.js",
     "index.d.ts",
     "claude.d.ts",
+    "eval.d.ts",
     "examples",
     "LICENSE",
     "README.md"

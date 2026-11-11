@@ -145,6 +145,7 @@ What the final LLM says is out of scope.
 | `src/layers/` | One file per layer |
 | `src/adapters/claude.js` | Optional Claude adapters |
 | `examples/sticker-shop/` | The invented shop and its mocks |
-| `bench/` | The in-sample and held-out banks, `measure.js` (with the Wilson interval) and the runner |
+| `src/eval.js` | `llm-cascade-router/eval`: `measure`, `format`, the mock LLM, Wilson and McNemar |
+| `bench/` | The in-sample and held-out banks and the runners |
 | `bin/cascade.js` | `npm run measure`: a JSON config against your own labelled messages |
 | `examples/starter/` | A three-answer config and ten messages copied from the sticker shop |

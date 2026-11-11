@@ -8,7 +8,8 @@
 //
 // The key is read from the environment and never printed or written.
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { measure, format } from './measure.js';
+import { measure, format } from '../src/eval.js';
+import { createKeywordClassifier } from '../examples/sticker-shop/classifier.js';
 import { safeErrorLabel } from './safe-error.js';
 import { createClaudeClassifier } from '../src/adapters/claude.js';
 import { createStickerShopRouter } from '../examples/sticker-shop/router.js';
@@ -92,7 +93,7 @@ const timed = async (input) => {
   }
 };
 
-const build = (slots) => createStickerShopRouter({ ...slots, classifierTimeoutMs: timeoutMs });
+const build = (slots) => createStickerShopRouter({ classify: null, ...slots, classifierTimeoutMs: timeoutMs });
 const load = async (n) => JSON.parse(await readFile(new URL(n, import.meta.url), 'utf8'));
 const banks = { inSample: await load('./messages.json'), heldOut: await load('./held-out.json') };
 
@@ -109,9 +110,10 @@ const total = { calls: 0, errors: 0, input: 0, output: 0, cacheRead: 0 };
 for (const [name, bank] of Object.entries(banks)) {
   for (const k of Object.keys(stats)) if (Array.isArray(stats[k])) stats[k] = []; else stats[k] = 0;
   // The sticker-shop router always has a classifier, so "without" is one that never answers.
-  const noModel = await measure(bank, { classifyWith: async () => ({ choice: null, confidence: 0 }) });
-  const mock = await measure(bank);
-  const real = await measure(bank, { build, classifyWith: timed });
+  const shop = (slots) => createStickerShopRouter({ classify: null, ...slots });
+  const noModel = await measure(bank, { build: shop });
+  const mock = await measure(bank, { build: shop, classify: createKeywordClassifier() });
+  const real = await measure(bank, { build, classify: timed });
   const lat = stats.latencies;
   const usd = cost(stats);
   const strip = ({ rows, ...rest }) => rest;
@@ -125,7 +127,7 @@ for (const [name, bank] of Object.entries(banks)) {
       latencyMs: { mean: round(lat.reduce((a, b) => a + b, 0) / (lat.length || 1)), p50: round(pct(lat, 0.5)),
         p95: round(pct(lat, 0.95)), max: round(Math.max(0, ...lat)) },
       costUsd: Number(usd.toFixed(6)),
-      breakEvenUsdPerMainLlmCall: real.classifierAnswers ? Number((usd / real.classifierAnswers).toFixed(6)) : null,
+      breakEvenUsdPerMainLlmCall: real.classifierRight ? Number((usd / real.classifierRight).toFixed(6)) : null,
       rows: real.rows.map(({ text, expect, layer, answerId, verdict }) => ({ text, expect, layer, answerId, verdict })),
     },
   };

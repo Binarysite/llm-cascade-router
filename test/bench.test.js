@@ -4,8 +4,14 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { measure, format, wilson95 } from '../bench/measure.js';
+import { measure, format, wilson95 } from '../src/eval.js';
 import { answers } from '../examples/sticker-shop/answers.js';
+import { createStickerShopRouter } from '../examples/sticker-shop/router.js';
+import { createKeywordClassifier } from '../examples/sticker-shop/classifier.js';
+
+/** @param {any} slots */
+const build = (slots) => createStickerShopRouter({ classify: null, ...slots });
+const shop = { build, classify: createKeywordClassifier() };
 
 const run = promisify(execFile);
 const script = new URL('../bench/run.js', import.meta.url).pathname;
@@ -55,12 +61,12 @@ test('measure counts a wrong fixed answer and format lists it under the table', 
   const report = await measure([
     { text: 'how long does shipping take', expect: 'sizes' },
     { text: 'cancel my order please', expect: 'llm' },
-  ]);
+  ], shop);
   assert.equal(report.total, 2);
   assert.equal(report.wrong.length, 1);
   assert.equal(report.byLayer.llm.right, 1);
   const lines = format(report);
-  assert.ok(lines.includes('wrong fixed answers: 1'));
+  assert.ok(lines.includes('wrong fixed answers: 1 of 1 given'));
   assert.ok(lines.includes('  WRONG exact: "how long does shipping take" -> shipping-time, expected sizes'));
   assert.ok(!format(report).some((l) => l.startsWith('ok ')), 'no per-message lines without verbose');
   assert.ok(format(report, { verbose: true }).some((l) => l.startsWith('WRONG exact')));
@@ -68,8 +74,8 @@ test('measure counts a wrong fixed answer and format lists it under the table', 
 
 test('each set gets its own call counts', async () => {
   const bank = [{ text: 'cancel my order please', expect: 'llm' }];
-  const a = await measure(bank);
-  const b = await measure(bank);
+  const a = await measure(bank, shop);
+  const b = await measure(bank, shop);
   assert.equal(a.llmCalls, 1);
   assert.equal(b.llmCalls, 1);
   assert.equal(b.classifierCalls, a.classifierCalls);
@@ -82,7 +88,7 @@ test('wilson95 gives the 95% interval and the bench prints it under the share', 
   assert.deepEqual(wilson95(0, 0), [0, 0]);
   const { stdout } = await run(process.execPath, [script]);
   const share = (k, n, pct, lo, hi) => new RegExp(
-    `answered without the main LLM: ${k}/${n} \\(${pct}%\\)\\n {2}95% interval \\(Wilson\\): ${lo}% to ${hi}%`);
+    `answered without the main LLM: ${k}/${n} \\(${pct}%\\), 95% interval \\(Wilson\\) ${lo}% to ${hi}%`);
   assert.match(stdout, share(31, 49, '63.3', '49.3', '75.3'));
   assert.match(stdout, share(7, 24, '29.2', '14.9', '49.2'));
 });

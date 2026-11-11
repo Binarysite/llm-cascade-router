@@ -12,8 +12,15 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   latency, token usage, cost and the break-even in dollars. First run, `deepseek-chat`:
   in-sample 31/48 with 0 wrong, held-out 11/24 with 2 wrong, USD 0.0033 in total
   (`reports/real-deepseek.json`). No Claude run yet.
-- `measure()` takes `classifyWith`, `format()` takes `classifierNote`, and the sticker-shop
-  router takes `classifierTimeoutMs`.
+- **`llm-cascade-router/eval`** (`src/eval.js`, typed in `eval.d.ts`): `measure`, `format`,
+  `createMockLlm`, `wilson95`, `mcnemarExact` and `latencySummary`. The bench and the CLI
+  import it, so the library no longer imports the sticker-shop example. `measure` takes a
+  required `build` and an optional `classify`; `format` takes `classifierNote`.
+- The bench prints the precision of fixed answers with a 95% Wilson interval, right under the
+  wrong count, and the classifier's right, wrong and unknown-id answers.
+- The README's output blocks carry a marker, `scripts/readme-outputs.mjs` regenerates them,
+  and a test fails when one differs from a fresh run.
+- The sticker-shop router takes `classifierTimeoutMs`, and `classify: null` to leave layer 3 out.
 
 ### Changed
 
@@ -22,6 +29,9 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   opt-in per answer with `avoidTypos: true`. A fuzzy veto misfired: "charge" vetoed answers
   whose avoid words were "change" and "charged".
 - Setup rejects an avoid entry of more than one word (it used to veto on each word alone).
+- **The classifier break-even counts right answers only** (right / calls). It counted every
+  answer, so a wrong answer looked like a saving. Wrong answers are reported apart.
+- The lint no longer checks for em dashes.
 - Layer 2 reports `margin` (top score minus the runner-up's) in its trace step.
 - An error thrown by `classify` or `generate` reaches the trace as its name and at most 200
   characters of its message; an unknown classifier choice is cut to 60 characters.

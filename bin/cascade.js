@@ -4,8 +4,7 @@
 import { readFile } from 'node:fs/promises';
 import { relative } from 'node:path';
 import { createRouter, RouterConfigError } from '../src/index.js';
-import { createMockLlm } from '../examples/sticker-shop/llm.js';
-import { measure, format } from '../bench/measure.js';
+import { createMockLlm, measure, format } from '../src/eval.js';
 
 const USAGE = `usage: node bin/cascade.js [--config <file.json> --messages <file.json>] [--verbose] [--json] [--help]
 
@@ -122,7 +121,7 @@ async function main() {
     throw new SetupError(`error: ${messagesPath}: expect is not an answer id in the config or "llm":\n${
       unknown.map((m) => `  "${m.text}" expects "${m.expect}"`).join('\n')}`);
   }
-  const report = await measure(bank, { build, classifier: false });
+  const report = await measure(bank, { build });
 
   if (opts.json) {
     const { rows, ...summary } = report;
@@ -130,7 +129,7 @@ async function main() {
   } else {
     console.log(`config: ${configPath}, messages: ${messagesPath} `
       + '(layers 1 and 2, then a counting mock LLM; no classifier, no network)');
-    console.log(format(report, { verbose: opts.verbose, noun: 'labelled messages' }).join('\n'));
+    console.log(format(report, { verbose: opts.verbose }).join('\n'));
   }
   return report.wrong.length ? 1 : 0;
 }
