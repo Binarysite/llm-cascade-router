@@ -59,10 +59,10 @@ simply not waited for. A caller abort ends the turn with the fallback.
 example, not tuned on real traffic. The bench is there to set them.
 
 **Zero runtime dependencies, ESM, Node 22+.** `npm run typecheck` runs
-`tsc --checkJs` on `src/` with `strict: false` (strict flags implicit `any`,
-mostly in `config.js`, which reads an untyped config), checks in
-`typecheck/conform.ts` that `index.d.ts` and `claude.d.ts` match the exports,
-and runs `tsc --strict` on those declarations (`tsconfig.strict.json`).
+`tsc --checkJs --strict` on `src/` (the raw config is typed `unknown` and
+narrowed by the validators), a non-strict pass on the examples, bench and CLI,
+checks in `typecheck/conform.ts` that the `.d.ts` files match the exports, and
+runs `tsc --strict` on those declarations.
 
 ## The held-out set
 
@@ -99,6 +99,12 @@ can do. Each point has a test in `test/threat-model.test.js`.
   classifier returns as an unknown choice or as `usage`.
 - **`context` is passed through untouched** to your classifier and LLM. Keep
   personal data out of it unless both may see it.
+- **Errors from injected functions are cut before they reach the trace.** A
+  throw from `classify` or `generate` is kept as its `name` (60 characters at
+  most) and the first 200 characters of its message; an unknown classifier
+  choice is cut to 60. A provider error that echoes the prompt or a masked key
+  can still put that much in your logs, so the bundled adapters never copy a
+  response body into an error.
 
 What the final LLM says is out of scope.
 

@@ -40,15 +40,17 @@ run in memory. What leaves your process depends on what you put in the two slots
 - **`createClaudeClassifier`** sends the Anthropic Messages API its system instructions, the
   id and `description` of every answer (the first phrase when no description is set) and the
   user's message. It does not send `context` or the `reply` strings.
-- **`createClaudeLlm`** sends the user's message and, if you set one, its `system` prompt. It
-  does not send `context`.
+- **`createClaudeLlm`** sends the user's message, its `system` prompt if you set one, and the
+  earlier turns in `context.messages` if you pass them. It sends nothing else from `context`.
 - **The API key** is read from `apiKey` or the `ANTHROPIC_API_KEY` environment variable and
   goes only in the `x-api-key` header of the request. `url` overrides the endpoint for tests;
-  the key is sent there too, so point it only at hosts you trust. An HTTP error message quotes
-  the first 300 characters of the response body.
+  the key is sent there too, so point it only at hosts you trust. An HTTP error carries the
+  status code and, when it is a plain identifier, the provider's error type; the response body
+  is never copied into it.
 - **Results** from layers 1 to 3 carry config text, numbers and the chosen id, not the
-  message. `llmOutput` is whatever `generate` returned, and a custom classifier's `usage` or
-  unknown choice is copied as given. Treat the result of a real LLM turn as sensitive in logs.
+  message. `llmOutput` is whatever `generate` returned, a custom classifier's `usage` is copied
+  as given, an unknown choice is cut to 60 characters, and an error thrown by an injected
+  function keeps its name and the first 200 characters of its message. Treat the result of a real LLM turn as sensitive in logs.
 
 See the [threat model](docs/DESIGN.md#threat-model) for what a hostile message can and cannot
 do. The router is not a safety layer: put injection and personal-data checks before it.
