@@ -18,6 +18,20 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - The README and `docs/DESIGN.md` no longer say the bench was never run against a model.
+- **Avoid words match exactly** (after normalization and synonyms). One-typo matching is now
+  opt-in per answer with `avoidTypos: true`. A fuzzy veto misfired: "charge" vetoed answers
+  whose avoid words were "change" and "charged".
+- Setup rejects an avoid entry of more than one word (it used to veto on each word alone).
+- Layer 2 reports `margin` (top score minus the runner-up's) in its trace step.
+
+### Fixed
+
+- **A vetoed answer no longer hands the win to the runner-up.** Layer 2 used to drop vetoed
+  answers before ranking, so "what do you charge for shipping" got the international answer
+  at 0.5 with no competitor. Vetoed answers are now ranked: a vetoed best answer is a miss,
+  and a vetoed runner-up still counts for the margin. The message is in the in-sample bank.
+- A 20,000-word message took about 240 ms in layer 2; it is now skipped after one split when
+  it has more than 4 x `maxTokens` words. The avoid check builds its word set once per turn.
 
 ### Security
 
