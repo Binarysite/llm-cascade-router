@@ -260,5 +260,5 @@ are mine. Status: v0.2.1, not on npm. Using it with
 [agent-eval-harness](docs/agent-eval-harness.md).
 
 Author: Alfredo Rosadilla ([@Binarysite](https://github.com/Binarysite)). MIT license, see [LICENSE](LICENSE);
-copyright AURELIAI SpA. Third-party data: [NOTICE](NOTICE).
+copyright Alfredo Rosadilla. Third-party data: [NOTICE](NOTICE).
 [Changelog](CHANGELOG.md), [security policy](SECURITY.md), [contributing](CONTRIBUTING.md).

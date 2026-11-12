@@ -8,8 +8,9 @@ project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Copyright holder is now Alfredo Rosadilla.
 - The README no longer says the router was extracted from other code; it is written from scratch,
-  copyright AURELIAI SpA.
+  copyright Alfredo Rosadilla.
 
 ### Fixed
 
